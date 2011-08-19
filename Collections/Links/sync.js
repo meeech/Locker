@@ -46,7 +46,12 @@ exports.gatherLinks = function() {
 
 exports.getLinks = function(type, endpoint, svcID, callback) {
     request.get({uri:lconfig.lockerBase + '/Me/' + svcID + '/getCurrent/' + endpoint}, function(err, resp, body) {
-        var arr = JSON.parse(body);
+        var arr;
+        try{
+            arr = JSON.parse(body);            
+        }catch(E){
+            return callback();
+        }
         processData(svcID, type, endpoint, arr, callback)
     });
 }

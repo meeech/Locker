@@ -60,8 +60,8 @@ app.get('/update', function(req, res) {
 });
 
 app.post('/events', function(req, res) {
-    if (!req.body.obj.type || !req.body.via || !(req.body.via.indexOf('facebook') === 0 || req.body.via.indexOf('twitter') === 0)) {
-        console.log('5 HUNDO');
+    if (!req.body.obj.type || !req.body.via || !(req.body.type.indexOf('link/facebook') === 0 || req.body.type.indexOf('link/twitter') === 0)) {
+        console.log('5 HUNDO bad data:',JSON.stringify(req.body));
         res.writeHead(500);
         res.end('bad data');
         return;
