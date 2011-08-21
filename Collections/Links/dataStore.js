@@ -52,3 +52,26 @@ exports.addLink = function(svcID, data, url, callback) {
 exports.clear = function(callback) {
     collection.drop(callback);
 }
+
+/*
+
+getLID - normalized expanded url
+    sha1's into a lid, calls getLinks w/ lid
+
+checkURL - normalized original url
+    looks at encounter originalUrls, takes first lid, calls getLinks w/ lid
+    if no lid, calls getLID
+
+addLink - url, title, text
+
+getLinks (optional id, start, limit)
+    returns array of id, link, title, text
+
+addEncounter eid, originalUrl, lid, network, fromName, fromID, text, via, timestamp
+
+getEncounters (optional lid, start, limit) by time
+
+
+visits - future
+
+*/
