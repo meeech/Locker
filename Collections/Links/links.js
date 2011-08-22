@@ -12,8 +12,10 @@
 var fs = require('fs'),
     locker = require('../../Common/node/locker.js');
     
-var sync = require('./sync');
-var dataStore = require("./dataStore");
+var dataIn = require('./dataIn'); // for processing incoming twitter/facebook/etc data types
+var dataStore = require("./dataStore"); // storage/retreival of raw links and encounters
+var util = require("./util"); // handy things for anyone and used within dataIn
+var search = require("./search"); // our indexing and query magic
 
 var lockerInfo;
 var express = require('express'),
@@ -79,7 +81,7 @@ app.get('/allLinks', function(req, res) {
 });
 
 app.get('/update', function(req, res) {
-    sync.gatherLinks();
+    dataIn.reIndex(locker);
     res.writeHead(200);
     res.end('Updating');
 });
@@ -91,17 +93,11 @@ app.post('/events', function(req, res) {
         res.end('bad data');
         return;
     }
-    
-    dataStore.addEvent(req.body, function(err, doc) {
-        // what event should this be?
-        // also, should the source be what initiated the change, or just contacts?  putting contacts for now.
-        //
-        // var eventObj = {source: req.body.obj.via, type:req.body.obj.type, data:doc};
-        var eventObj = {source: "links", type:req.body.obj.type, data:doc};
-        locker.event("link/full", eventObj);
-        res.writeHead(200);
-        res.end('new object added');
-    })
+
+    // handle asyncadilly
+    dataIn.processEvent(req.body);
+    res.writeHead(200);
+    res.end('ok');
 });
 
 // Process the startup JSON object
@@ -109,6 +105,7 @@ process.stdin.resume();
 process.stdin.on('data', function(data) {
     lockerInfo = JSON.parse(data);
     locker.initClient(lockerInfo);
+    locker.lockerBase = lockerInfo.lockerUrl;
     if (!lockerInfo || !lockerInfo['workingDirectory']) {
         process.stderr.write('Was not passed valid startup information.'+data+'\n');
         process.exit(1);
@@ -116,13 +113,9 @@ process.stdin.on('data', function(data) {
     process.chdir(lockerInfo.workingDirectory);
     
     locker.connectToMongo(function(mongo) {
-        sync.init(lockerInfo.lockerUrl, mongo.collections.links);
+        dataStore.init(mongo.collections.links);
         app.listen(lockerInfo.port, 'localhost', function() {
             process.stdout.write(data);
-            sync.eventEmitter.on('link/full', function(eventObj) {
-                locker.event('link/full', eventObj);
-            });
-            // gatherContacts();
         });
     });
 });
