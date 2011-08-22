@@ -42,6 +42,31 @@ app.get('/state', function(req, res) {
     });
 });
 
+app.get('/search', function(req, res) {
+    res.writeHead(200, {
+        'Content-Type': 'application/json'
+    });
+    res.write(JSON.stringify([
+        {"link":"http://foo.com",
+        "orig":"http://bit.ly/bar",
+        "title":"This is Foo",
+        "at":"1234567890",
+        "network":"facebook",
+        "from":"Bob",
+        "fromID":"123456",
+        "eid":"asdfasdf"},
+        {"link":"http://bar.com",
+        "orig":"http://bit.ly/foo",
+        "title":"This is Bar",
+        "at":"1234577890",
+        "network":"twitter",
+        "from":"Jane",
+        "fromID":"@jane",
+        "eid":"asdfasdfasdf"}
+        ]));
+    res.end();
+});
+
 app.get('/allLinks', function(req, res) {
     res.writeHead(200, {
         'Content-Type':'application/json'
