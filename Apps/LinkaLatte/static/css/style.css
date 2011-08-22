@@ -1,0 +1,17 @@
+#errorMsg {
+    display:none;
+    border:1px solid #D8000C;
+    background-color:;
+    color: #D8000C;
+    background-color: #FFBABA;
+    padding:4px;
+}
+
+#loading {
+    font-style:italic;
+}
+
+/* Default to hidden while we find the collection */
+header {
+    display:none;
+}
