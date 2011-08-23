@@ -41,6 +41,11 @@ exports.getLinks = function(arg, cbEach, cbDone) {
     findWrap(f,arg,linkCollection,cbEach,cbDone)
 }
 
+exports.getFullLink = function(id, cbDone) {
+    var link = null;
+    exports.getLinks({link:id}, function(l) { link = l; }, function() { cbDone(link); });
+}
+
 // either gets a single encounter arg:{id:...,network:...,link:...} or multiple from just a link arg:{link:...} and can paginate all arg:{start:10,limit:10}
 exports.getEncounters = function(arg, cbEach, cbDone) {
     var f = (arg.link)?{link:arg.link}:{}; // link search
@@ -48,7 +53,7 @@ exports.getEncounters = function(arg, cbEach, cbDone) {
     delete arg.id;
     delete arg.network;
     delete arg.link;
-    findWrap(f,arg,linkCollection,cbEach,cbDone)
+    findWrap(f,arg,encounterCollection,cbEach,cbDone)
 }
 
 function findWrap(a,b,c,cbEach,cbDone){

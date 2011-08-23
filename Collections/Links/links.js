@@ -13,6 +13,7 @@ var fs = require('fs'),
     url = require('url'),
     request = require('request'),
     locker = require('../../Common/node/locker.js');
+var async = require("async");
     
 var dataIn = require('./dataIn'); // for processing incoming twitter/facebook/etc data types
 var dataStore = require("./dataStore"); // storage/retreival of raw links and encounters
@@ -52,7 +53,26 @@ app.get('/search', function(req, res) {
         return;
     }
     search.search(req.query["q"], function(err,results) {
-        res.send(results);
+        var fullResults = [];
+        async.forEach(results, function(item, callback) {
+            dataStore.getFullLink(item._id, function(link) {
+                console.log("Got full link for " + item._id);
+                link.at = item.at;
+                link.encounters = [];
+                dataStore.getEncounters({"link":link.link}, function(encounter) {
+                    link.encounters.push(encounter);
+                }, function() {
+                    fullResults.push(link);
+                    callback();
+                });
+            });
+        }, function() {
+            // Done
+            fullResults.sort(function(lh, rh) {
+                return lh.at > rh.at;
+            });
+            res.send(fullResults);
+        });
     });
     /*
     res.write(JSON.stringify([
