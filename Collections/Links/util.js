@@ -8,8 +8,8 @@ var request = require('request');
 // simply expand a given url
 exports.expandUrl = function(arg, cbEach, cbDone) {
     if(!arg.url) return cbDone("no url");
-    unshortener.expand(arg.url, function(url){
-        cbEach(url);
+    unshortener.expand(arg.url, function(u){
+        cbEach(u);
         cbDone();
     });
 }

@@ -141,8 +141,8 @@ process.stdin.on('data', function(data) {
     locker.connectToMongo(function(mongo) {
         // initialize all our libs
         dataStore.init(mongo.collections.link,mongo.collections.encounter);
-        dataIn.init(locker, dataStore);
         search.init(dataStore);
+        dataIn.init(locker, dataStore, search);
         app.listen(lockerInfo.port, 'localhost', function() {
             process.stdout.write(data);
         });

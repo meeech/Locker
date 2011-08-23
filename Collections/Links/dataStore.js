@@ -23,7 +23,7 @@ exports.getTotalEncounters = function(callback) {
 }
 
 // handy to check all the original urls we've seen to know if we already have a link expanded/done
-exports.checkURL = function(origUrl, callback) {
+exports.checkUrl = function(origUrl, callback) {
     encounterCollection.find({orig:origUrl}, {limit:1}, function(err, cursor){
         if(err) return callback();
         cursor.nextObject(function(err, item){

@@ -3,11 +3,12 @@ var util = require('./util');
 var async = require('async');
 var url = require('url');
 
-var dataStore, locker;
+var dataStore, locker, search;
 // internally we need these for happy fun stuff
-exports.init = function(l, dStore){
+exports.init = function(l, dStore, s){
     dataStore = dStore;
     locker = l;
+    search = s;
 }
 
 // manually walk and reindex all possible link sources
@@ -48,6 +49,7 @@ function getLinks(getter, url, callback) {
         for(var i=0; i < arr.length; i++)
         {
             var e = getter(arr[i]);
+            if(!e.text) continue;
             processEncounter(e,function(err){if(err) console.log("getLinks error:"+err)});
         }
     });
@@ -57,28 +59,53 @@ function getLinks(getter, url, callback) {
 function processEncounter(e, callback)
 {
     var urls = [];
+console.log("processing encounter: "+JSON.stringify(e));
     // extract all links
-    util.extractUrl({text:e.text},function(u){urls.push(u)},function(err){
+    util.extractUrls({text:e.text},function(u){urls.push(u)},function(err){
         if(err) return callback(err);
         // for each one, run linkMagic on em
         async.forEach(urls,function(u,cb){
-            linkMagic(url.format(u),function(l){
+            linkMagic(url.format(u),function(link){
                 e.orig = url.format(u);
-                e.link = l.link;
-                dataStore.addEncounter(e,cb); // once resolved, store the encounter
+                e.link = link;
+                dataStore.addEncounter(e,function(err){
+                    if(err) return cb(err);
+                    search.index(link,cb)
+                }); // once resolved, store the encounter
+                
             });
         },callback);
     });
 }
 
-// given a raw url, result in a fully stored qualified link
+// given a raw url, result in a fully stored qualified link (cb's full link url)
 function linkMagic(origUrl, callback){
-    
-    // ds.checkUrl first, short circuit
-    // failing that, unshorten
-    // that's our linkUrl, now ds.getLinks it
-    // failing that, fetch it, extact text/favicon, and store
-    // return final link url
+    // check if the orig url is in any encounter already (that has a full link url)
+    dataStore.checkUrl(origUrl,function(linkUrl){
+        if(linkUrl) return callback(linkUrl); // short circuit!
+        // new one, expand it to a full one
+        util.expandUrl(origUrl,function(u){linkUrl=u},function(){
+           if(!linkUrl) linkUrl = origUrl; // fallback use orig if errrrr
+           var link = false;
+           // does this full one already have a link stored?
+           dataStore.getLinks({url:linkUrl},function(l){link=l},function(err){
+              if(link) return callback(link.link); // yeah short circuit dos!
+              // new link!!!
+              link = {link:linkUrl};
+              util.fetchHTML({url:linkUrl},function(html){link.html = html},function(){
+                  util.extractText(link,function(rtxt){link.title=rtxt.title;link.text = rtxt.text},function(){
+                      util.extractFavicon({url:linkUrl,html:link.html},function(fav){link.favicon=fav},function(){
+                          // *pfew*, callback nausea, sometimes I wonder...
+                          delete link.html; // don't want that stored
+                          dataStore.addLink(link,function(){
+                              callback(link.link); // TODO: handle when it didn't get stored or is empty better, if even needed
+                          });
+                      });
+                  });
+              });
+           });
+        });
+    });
 }
 
 function getEncounterFB(post)
@@ -89,6 +116,7 @@ function getEncounterFB(post)
         , from: post.from.name
         , fromID: post.from.id
         , at: post.created_time
+        , via: post
         };
     return e;
 }
@@ -101,6 +129,7 @@ function getEncounterTwitter(tweet)
         , from: tweet.user.name
         , fromID: tweet.user.id
         , at: new Date(tweet.created_at).getTime()
+        , via: tweet
         };
     return e;
 }
