@@ -2,6 +2,7 @@ var request = require('request');
 var util = require('./util');
 var async = require('async');
 var url = require('url');
+var logger = require(__dirname + "/../../Common/node/logger").logger;
 
 var dataStore, locker, search;
 // internally we need these for happy fun stuff
@@ -59,11 +60,12 @@ function getLinks(getter, url, callback) {
 function processEncounter(e, callback)
 {
     var urls = [];
-console.log("processing encounter: "+JSON.stringify(e));
+//console.log("processing encounter: "+JSON.stringify(e));
     // extract all links
     util.extractUrls({text:e.text},function(u){urls.push(u)},function(err){
         if(err) return callback(err);
         // for each one, run linkMagic on em
+        if (urls.length === 0) return callback();
         async.forEach(urls,function(u,cb){
             linkMagic(url.format(u),function(link){
                 e.orig = url.format(u);
@@ -84,12 +86,17 @@ function linkMagic(origUrl, callback){
     dataStore.checkUrl(origUrl,function(linkUrl){
         if(linkUrl) return callback(linkUrl); // short circuit!
         // new one, expand it to a full one
-        util.expandUrl(origUrl,function(u){linkUrl=u},function(){
-           if(!linkUrl) linkUrl = origUrl; // fallback use orig if errrrr
+        util.expandUrl(origUrl,function(u){linkUrl=u.href},function(){
+           // fallback use orig if errrrr
+           if(!linkUrl) {
+               linkUrl = origUrl;
+            }
            var link = false;
            // does this full one already have a link stored?
            dataStore.getLinks({url:linkUrl},function(l){link=l},function(err){
-              if(link) return callback(link.link); // yeah short circuit dos!
+              if(link) {
+                  return callback(link.link); // yeah short circuit dos!
+              }
               // new link!!!
               link = {link:linkUrl};
               util.fetchHTML({url:linkUrl},function(html){link.html = html},function(){

@@ -2,6 +2,8 @@ var clucene = require('clucene').CLucene;
 var lucene = new clucene.Lucene();
 var path = require('path');
 var fs = require('fs');
+var async = require("async");
+var logger = require(__dirname + "/../../Common/node/logger").logger;
 
 // constants, graciously lifted from lsearch
 var EStore = {
@@ -45,9 +47,14 @@ exports.index = function(linkUrl, callback){
         function(l) { link=l },
         function(err){
             if(err) return callback(err);
+            if (!link) {
+                logger.debug("No url was found for " + linkUrl);
+                return callback(err);
+            }
             var at=0;
             // array of all text parts, start with important link stuff
-            var parts = [linkUrl,link.title];
+            var parts = [linkUrl];
+            if (link.title) parts.push(link.title);
             dataStore.getEncounters({link:linkUrl},
                 function(e){
                     // track newest for sorting timestamp

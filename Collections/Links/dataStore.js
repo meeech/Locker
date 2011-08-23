@@ -6,6 +6,7 @@
 * Please see the LICENSE file for more information.
 *
 */
+var logger = require(__dirname + "/../../Common/node/logger").logger;
 
 // in the future we'll probably need a visitCollection too
 var linkCollection, encounterCollection;
@@ -35,7 +36,7 @@ exports.checkUrl = function(origUrl, callback) {
 
 // either gets a single link arg:{url:...} or can paginate all arg:{start:10,limit:10}
 exports.getLinks = function(arg, cbEach, cbDone) {
-    var f = (arg.link)?{id:arg.link}:{};
+    var f = (arg.link)?{link:arg.link}:{};
     delete arg.id;
     findWrap(f,arg,linkCollection,cbEach,cbDone)
 }
@@ -51,10 +52,15 @@ exports.getEncounters = function(arg, cbEach, cbDone) {
 }
 
 function findWrap(a,b,c,cbEach,cbDone){
-    c.find(a, b, function(err, cursor){
+    c.find(a, {}, b, function(err, cursor){
         if(err) return cbDone(err);
-        cursor.each(function(err, item){if(item != null) cbEach(item)});
-        cbDone();
+        cursor.each(function(err, item) {
+            if (item != null) {
+                cbEach(item);
+            } else {
+                cbDone();
+            }
+        });
     });
 }
 
