@@ -41,23 +41,36 @@ exports.search = function(q, callback){
 // trigger a re-index of a link, get it and all it's encounters and smush them into some text
 exports.index = function(linkUrl, callback){
     var link;
-    dataStore.getLinks({link:linkUrl},function(l){link=l},function(err){
-        if(err) return callback(err);
-        var at=0;
-        // array of all text parts, start with important link stuff
-        var parts = [linkUrl,link.title];
-        dataStore.getEncounters({link:linkUrl},function(e){
-            // track newest for sorting timestamp
-            if(e.at > at) at = e.at;
-            // add text parts of each encounter, except via
-            for(var a in e){if(a != "via") parts.push(e[a])};
-        },function(err){
+    dataStore.getLinks({link:linkUrl},
+        function(l) { link=l },
+        function(err){
             if(err) return callback(err);
-            parts.push(link.text); // add raw text at the end, lower score in lucene?
-            ndx(linkUrl,at.toString(),parts.join(" <> ")); // does this break apart tokenization?
-        });
-    });
+            var at=0;
+            // array of all text parts, start with important link stuff
+            var parts = [linkUrl,link.title];
+            dataStore.getEncounters({link:linkUrl},
+                function(e){
+                    // track newest for sorting timestamp
+                    if(e.at > at) at = e.at;
+                    // add text parts of each encounter, except via
+                    for(var a in e){if(a != "via") parts.push(e[a])};
+                },
+                function(err){
+                    if(err) return callback(err);
+                    parts.push(link.text); // add raw text at the end, lower score in lucene?
+                    //ndx(linkUrl,at.toString(),parts.join(" <> ")); // does this break apart tokenization?
+                    indexQueue.push({url:linkUrl, "at":at.toString(), txt:parts.join(" <> ")});
+                }
+            );
+        }
+    );
 }
+
+var indexQueue = async.queue(function(task, callback) {
+    ndx(task.url, task.at, task.txt, function(err, indexTime, docsReplacedCount) {
+        callback();
+    });
+}, 1);
 
 // raw indexing lucene wrapper
 function ndx(id,at,txt,cb)
