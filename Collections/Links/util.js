@@ -1,6 +1,6 @@
 
 var url = require('url');
-var unshortener = require('unshortener');
+var unshortener = require('./unshortener');
 var sax =  require("sax");
 var readability = require("readabilitySAX");
 var request = require('request');
@@ -11,7 +11,8 @@ exports.expandUrl = function(arg, cbEach, cbDone) {
     if(!arg.url) return cbDone("no url");
     unshortener.expand(arg.url, function(u){
         logger.debug("SHORTTTTTT "+arg.url+" returning "+url.format(u));
-        cbEach(u);
+        if(!u.host) return cbDone(arg.url)
+        cbEach(url.format(u));
         cbDone();
     });
 }
@@ -28,8 +29,8 @@ exports.extractUrls = function(arg, cbEach, cbDone) {
         // gotta do sanity cleanup for url.parse, it makes no assumptions I guess :/
         if(str.substr(0,4).toLowerCase() != "http") str = "http://"+str;
         var u = url.parse(str);
-        if(!u) continue;
-        cbEach(u);
+        if(!u.host) continue; // TODO: fully normalize
+        cbEach(url.format(u));
     }
     cbDone();
 }

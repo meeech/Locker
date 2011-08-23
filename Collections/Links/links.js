@@ -31,7 +31,7 @@ app.get('/', function(req, res) {
     res.writeHead(200, {
         'Content-Type': 'text/html'
     });
-    dataStore.getTotalCount(function(err, countInfo) {
+    dataStore.getTotalLinks(function(err, countInfo) {
         res.write('<html><p>Found '+ countInfo +' links</p></html>');
         res.end();
     });
@@ -41,7 +41,7 @@ app.get('/state', function(req, res) {
     res.writeHead(200, {
         'Content-Type': 'application/json'
     });
-    dataStore.getTotalCount(function(err, countInfo) {
+    dataStore.getTotalLinks(function(err, countInfo) {
         res.write('{"updated":'+new Date().getTime()+',"ready":1,"count":'+ countInfo +'}');
         res.end();
     });
@@ -53,6 +53,7 @@ app.get('/search', function(req, res) {
         return;
     }
     search.search(req.query["q"], function(err,results) {
+        if(err || !results || results.length == 0) return res.send([]);
         var fullResults = [];
         async.forEach(results, function(item, callback) {
             dataStore.getFullLink(item._id, function(link) {
@@ -72,38 +73,6 @@ app.get('/search', function(req, res) {
                 return lh.at > rh.at;
             });
             res.send(fullResults);
-        });
-    });
-    /*
-    res.write(JSON.stringify([
-        {"link":"http://foo.com",
-        "orig":"http://bit.ly/bar",
-        "title":"This is Foo",
-        "at":"1234567890",
-        "network":"facebook",
-        "from":"Bob",
-        "fromID":"123456",
-        "eid":"asdfasdf"},
-        {"link":"http://bar.com",
-        "orig":"http://bit.ly/foo",
-        "title":"This is Bar",
-        "at":"1234577890",
-        "network":"twitter",
-        "from":"Jane",
-        "fromID":"@jane",
-        "eid":"asdfasdfasdf"}
-        ]));
-    res.end();
-    */
-});
-
-app.get('/allLinks', function(req, res) {
-    res.writeHead(200, {
-        'Content-Type':'application/json'
-    });
-    dataStore.getAll(function(err, cursor) {
-        cursor.toArray(function(err, items) {
-            res.end(JSON.stringify(items));
         });
     });
 });
@@ -150,7 +119,7 @@ app.post('/events', function(req, res) {
     res.end('ok');
 });
 
-// TODO add endpoints for utils and dataStore calls and search!
+// TODO add endpoints for utils and dataStore calls!
 
 // Process the startup JSON object
 process.stdin.resume();

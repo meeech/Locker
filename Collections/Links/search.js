@@ -24,7 +24,7 @@ var indexPath, dataStore;
 exports.init = function(dStore)
 {
     dataStore = dStore;
-    indexPath = process.cwd() + "/testsearch.index";
+    indexPath = process.cwd() + "/links.index";
     if (!path.existsSync(indexPath)) {
       fs.mkdirSync(indexPath, 0755);
     };
@@ -82,6 +82,7 @@ var indexQueue = async.queue(function(task, callback) {
 // raw indexing lucene wrapper
 function ndx(id,at,txt,cb)
 {
+    logger.debug("NDX "+id+" at "+at+" of "+txt);
     var doc = new clucene.Document();
     doc.addField("at", at, EStore.STORE_YES|EIndex.INDEX_UNTOKENIZED);
     doc.addField('content', txt, EStore.STORE_NO|EIndex.INDEX_TOKENIZED);

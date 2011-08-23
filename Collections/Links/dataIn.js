@@ -1,7 +1,6 @@
 var request = require('request');
 var util = require('./util');
 var async = require('async');
-var url = require('url');
 var logger = require(__dirname + "/../../Common/node/logger").logger;
 
 var dataStore, locker, search;
@@ -39,8 +38,8 @@ exports.processEvent = function(event)
 }
 
 // used by reIndex to fetch and process each service
-function getLinks(getter, url, callback) {
-    request.get({uri:url}, function(err, resp, body) {
+function getLinks(getter, lurl, callback) {
+    request.get({uri:lurl}, function(err, resp, body) {
         var arr;
         try{
             arr = JSON.parse(body);            
@@ -67,8 +66,8 @@ logger.debug("processing encounter: "+JSON.stringify(e));
         // for each one, run linkMagic on em
         if (urls.length === 0) return callback();
         async.forEach(urls,function(u,cb){
-            linkMagic(url.format(u),function(link){
-                e.orig = url.format(u);
+            linkMagic(u,function(link){
+                e.orig = u;
                 e.link = link;
                 dataStore.addEncounter(e,function(err){
                     if(err) return cb(err);
@@ -86,7 +85,7 @@ function linkMagic(origUrl, callback){
     dataStore.checkUrl(origUrl,function(linkUrl){
         if(linkUrl) return callback(linkUrl); // short circuit!
         // new one, expand it to a full one
-        util.expandUrl({url:origUrl},function(u){linkUrl=url.format(u)},function(){
+        util.expandUrl({url:origUrl},function(u){linkUrl=u},function(){
            // fallback use orig if errrrr
            if(!linkUrl) {
                linkUrl = origUrl;
