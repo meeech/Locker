@@ -6,7 +6,7 @@ var readability = require("readabilitySAX");
 var request = require('request');
 
 // simply expand a given url
-exports.expandLink = function(arg, cbEach, cbDone) {
+exports.expandUrl = function(arg, cbEach, cbDone) {
     if(!arg.url) return cbDone("no url");
     unshortener.expand(arg.url, function(url){
         cbEach(url);
@@ -15,7 +15,7 @@ exports.expandLink = function(arg, cbEach, cbDone) {
 }
 
 // find/iterate through all possible urls in any random text
-exports.extractLinks = function(arg, cbEach, cbDone) {
+exports.extractUrls = function(arg, cbEach, cbDone) {
     if(!arg.text) return cbDone("no text");
     var regexToken = /((?:https?:\/\/|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/g;
 

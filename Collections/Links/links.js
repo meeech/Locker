@@ -88,7 +88,7 @@ app.get('/update', function(req, res) {
     res.end('Updating');
 });
 
-// just add embedly key and return result,
+// just add embedly key and return result: http://embed.ly/docs/endpoints/1/oembed
 // TODO: should do smart caching
 app.get('/embed', function(req, res) {
     // TODO: need to load from apiKeys the right way

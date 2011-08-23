@@ -1,4 +1,7 @@
 var request = require('request');
+var util = require('./util');
+var async = require('async');
+var url = require('url');
 
 var dataStore, locker;
 // internally we need these for happy fun stuff
@@ -45,20 +48,32 @@ function getLinks(getter, url, callback) {
         for(var i=0; i < arr.length; i++)
         {
             var e = getter(arr[i]);
-            console.log(JSON.stringify(e));
+            processEncounter(e,function(err){if(err) console.log("getLinks error:"+err)});
         }
     });
 }
 
 // do all the dirty work to store a new encounter
-function processEncounter(e, callback){
+function processEncounter(e, callback)
+{
+    var urls = [];
     // extract all links
-    // run linkMagic on them
-    // for each link, store an encounter... (storing one encounter w/ arrays of links in it seems weird?)
+    util.extractUrl({text:e.text},function(u){urls.push(u)},function(err){
+        if(err) return callback(err);
+        // for each one, run linkMagic on em
+        async.forEach(urls,function(u,cb){
+            linkMagic(url.format(u),function(l){
+                e.orig = url.format(u);
+                e.link = l.link;
+                dataStore.addEncounter(e,cb); // once resolved, store the encounter
+            });
+        },callback);
+    });
 }
 
 // given a raw url, result in a fully stored qualified link
 function linkMagic(origUrl, callback){
+    
     // ds.checkUrl first, short circuit
     // failing that, unshorten
     // that's our linkUrl, now ds.getLinks it
