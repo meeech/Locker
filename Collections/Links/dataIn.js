@@ -60,7 +60,7 @@ function getLinks(getter, url, callback) {
 function processEncounter(e, callback)
 {
     var urls = [];
-//console.log("processing encounter: "+JSON.stringify(e));
+logger.debug("processing encounter: "+JSON.stringify(e));
     // extract all links
     util.extractUrls({text:e.text},function(u){urls.push(u)},function(err){
         if(err) return callback(err);
@@ -86,7 +86,7 @@ function linkMagic(origUrl, callback){
     dataStore.checkUrl(origUrl,function(linkUrl){
         if(linkUrl) return callback(linkUrl); // short circuit!
         // new one, expand it to a full one
-        util.expandUrl(origUrl,function(u){linkUrl=u.href},function(){
+        util.expandUrl({url:origUrl},function(u){linkUrl=url.format(u)},function(){
            // fallback use orig if errrrr
            if(!linkUrl) {
                linkUrl = origUrl;

@@ -7,9 +7,10 @@ var request = require('request');
 var logger = require(__dirname + "/../../Common/node/logger").logger;
 
 // simply expand a given url
-exports.expandUrl = function(url, cbEach, cbDone) {
-    if(!url) return cbDone("no url");
-    unshortener.expand(url, function(u){
+exports.expandUrl = function(arg, cbEach, cbDone) {
+    if(!arg.url) return cbDone("no url");
+    unshortener.expand(arg.url, function(u){
+        logger.debug("SHORTTTTTT "+arg.url+" returning "+url.format(u));
         cbEach(u);
         cbDone();
     });
