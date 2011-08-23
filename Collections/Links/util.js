@@ -86,4 +86,8 @@ exports.fetchHTML = function(arg, cbEach, cbDone) {
 	
 }
 
+// proxy/auth a call to embed.ly's api
+exports.fetchEmbed = function(arg, cbEach, cbDone) {
+    // TODO
+}
 

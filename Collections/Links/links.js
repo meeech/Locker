@@ -86,6 +86,14 @@ app.get('/update', function(req, res) {
     res.end('Updating');
 });
 
+app.get('/embed', function(req, res) {
+    // TODO: add caching
+    // TODO: need to load from apiKeys the right way
+    util.fetchEmbed(locker);
+    res.writeHead(200);
+    res.end('TODO');
+});
+
 app.post('/events', function(req, res) {
     if (!req.body.obj.type || !req.body.via || !(req.body.type.indexOf('link/facebook') === 0 || req.body.type.indexOf('link/twitter') === 0)) {
         console.log('5 HUNDO bad data:',JSON.stringify(req.body));
@@ -100,6 +108,8 @@ app.post('/events', function(req, res) {
     res.end('ok');
 });
 
+// TODO add endpoints for utils and dataStore calls and search!
+
 // Process the startup JSON object
 process.stdin.resume();
 process.stdin.on('data', function(data) {
@@ -113,7 +123,10 @@ process.stdin.on('data', function(data) {
     process.chdir(lockerInfo.workingDirectory);
     
     locker.connectToMongo(function(mongo) {
-        dataStore.init(mongo.collections.links);
+        // initialize all our libs
+        dataStore.init(mongo.collections.link,mongo.collections.encounter);
+        dataIn.init(locker, dataStore);
+        search.init(dataStore);
         app.listen(lockerInfo.port, 'localhost', function() {
             process.stdout.write(data);
         });

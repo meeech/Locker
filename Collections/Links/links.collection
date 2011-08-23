@@ -5,6 +5,6 @@
     "status":"stable",
     "handle":"links",
     "provides":["link"],
-    "mongoCollections": ["links"],
+    "mongoCollections": ["link","encounter"],
     "events":[["link/facebook","/events"],["link/twitter","/events"]]
 }

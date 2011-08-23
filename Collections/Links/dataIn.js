@@ -1,5 +1,12 @@
 var request = require('request');
 
+var dataStore, locker;
+// internally we need these for happy fun stuff
+exports.init = function(l, dStore){
+    dataStore = dStore;
+    locker = l;
+}
+
 // manually walk and reindex all possible link sources
 exports.reIndex = function(locker) {
     locker.providers(['link/facebook', 'status/twitter'], function(err, services) {
@@ -43,6 +50,21 @@ function getLinks(getter, url, callback) {
     });
 }
 
+// do all the dirty work to store a new encounter
+function processEncounter(e, callback){
+    // extract all links
+    // run linkMagic on them
+    // for each link, store an encounter... (storing one encounter w/ arrays of links in it seems weird?)
+}
+
+// given a raw url, result in a fully stored qualified link
+function linkMagic(origUrl, callback){
+    // ds.checkUrl first, short circuit
+    // failing that, unshorten
+    // that's our linkUrl, now ds.getLinks it
+    // failing that, fetch it, extact text/favicon, and store
+    // return final link url
+}
 
 function getEncounterFB(post)
 {

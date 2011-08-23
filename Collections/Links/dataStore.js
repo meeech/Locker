@@ -7,71 +7,71 @@
 *
 */
 
-var collection;
+// in the future we'll probably need a visitCollection too
+var linkCollection, encounterCollection;
 
-exports.init = function(mongoCollection) {
-    collection = mongoCollection;
+exports.init = function(lCollection, eCollection) {
+    linkCollection = lCollection;
+    encounterCollection = eCollection;
 }
 
-exports.getTotalCount = function(callback) {
-    collection.count(callback);
+exports.getTotalLinks = function(callback) {
+    linkCollection.count(callback);
 }
-exports.getAll = function(callback) {
-    collection.find({}, callback);
-}
-
-exports.addEvent = function(data, callback) {
-    var type = data.via;
-    if (type.indexOf('facebook') !== -1) {
-        exports.addLink("facebook", data.obj.data, data.obj.data.url, callback);
-    } else if (type.indexOf('twitter') !== -1 && data.obj && data.obj.hasOwnProperty("status") && data.obj.status.hasOwnProperty("entities") && data.obj.status.entities.hasOwnProperty("urls")) {
-        exports.addLink("twitter", data.obj.status, data.obj.status.entities.urls[0].expanded_url || data.obj.status.entities.urls[0].url, callback);
-    } else {
-        callback("Invalid data");
-    }
+exports.getTotalEncounters = function(callback) {
+    encounterCollection.count(callback);
 }
 
-exports.addData = function(svcID, type, data, callback) {
-    if (type === 'facebook') {
-        exports.addLink(svcID, data.data, data.data.link, callback);
-    } else if (type === 'twitter') {
-        exports.addLink(svcID, data.data, 
-                data.data.entities.urls[0].expanded_url || data.data.entities.urls[0].url,
-                callback);
-    }
+// handy to check all the original urls we've seen to know if we already have a link expanded/done
+exports.checkURL = function(origUrl, callback) {
+    encounterCollection.find({orig:origUrl}, {limit:1}, function(err, cursor){
+        if(err) return callback();
+        cursor.nextObject(function(err, item){
+            if(err || !item || !item.link) return callback();
+            callback(item.link);
+        });
+    });
 }
 
-exports.addLink = function(svcID, data, url, callback) {
-    collection.findAndModify({'url':url}, [['_id','asc']], 
-                             {$set:{'url':url}, 
-                             //TODO: this could get seriously expensive!!!
-                              $addToSet:{sourceObjects:{'svcID':svcID, object:data}}}, 
+// either gets a single link arg:{url:...} or can paginate all arg:{start:10,limit:10}
+exports.getLinks = function(arg, cbEach, cbDone) {
+    var f = (arg.link)?{id:arg.link}:{};
+    delete arg.id;
+    findWrap(f,arg,linkCollection,cbEach,cbDone)
+}
+
+// either gets a single encounter arg:{id:...,network:...,link:...} or multiple from just a link arg:{link:...} and can paginate all arg:{start:10,limit:10}
+exports.getEncounters = function(arg, cbEach, cbDone) {
+    var f = (arg.link)?{link:arg.link}:{}; // link search
+    if(arg.id) f = {id:arg.network+':'+arg.id+':'+arg.link}; // individual encounter search
+    delete arg.id;
+    delete arg.network;
+    delete arg.link;
+    findWrap(f,arg,linkCollection,cbEach,cbDone)
+}
+
+function findWrap(a,b,c,cbEach,cbDone){
+    c.find(a, b, function(err, cursor){
+        if(err) return cbDone(err);
+        cursor.each(function(err, item){if(item != null) cbEach(item)});
+        cbDone();
+    });
+}
+
+
+// insert new link, ignore or replace if it already exists?
+exports.addLink = function(link, callback) {
+    linkCollection.findAndModify(XXX, [['_id','asc']], 
+                             {$set:{'url':url}}, 
                              {safe:true, upsert:true, new: true}, callback);
 }
 
-exports.clear = function(callback) {
-    collection.drop(callback);
+// insert new encounter, replace any existing
+exports.addEncounter = function(encounter, callback) {
+    // create unique id as encounter.network+':'+encounter.id+':'+link, sha1 these or something?
+    encounterCollection.findAndModify(XXX, [['_id','asc']], 
+                             {$set:{'url':url}}, 
+                             {safe:true, upsert:true, new: true}, callback);
 }
 
-/*
-
-getLID - normalized expanded url
-    sha1's into a lid, calls getLinks w/ lid
-
-checkURL - normalized original url
-    looks at encounter originalUrls, takes first lid, calls getLinks w/ lid
-    if no lid, calls getLID
-
-addLink - url, title, text
-
-getLinks (optional id, start, limit)
-    returns array of id, link, title, text
-
-addEncounter eid, originalUrl, lid, network, fromName, fromID, text, via, timestamp
-
-getEncounters (optional lid, start, limit) by time
-
-
-visits - future
-
-*/
+    
