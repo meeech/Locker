@@ -59,7 +59,8 @@ function findWrap(a,b,c,cbEach,cbDone){
 }
 
 
-// insert new link, ignore or replace if it already exists?
+// insert new (fully normalized) link, ignore or replace if it already exists? 
+// {link:"http://foo.com/bar", title:"Foo", text:"Foo bar is delicious.", favicon:"http://foo.com/favicon.ico"}
 exports.addLink = function(link, callback) {
     linkCollection.findAndModify(XXX, [['_id','asc']], 
                              {$set:{'url':url}}, 
@@ -67,6 +68,7 @@ exports.addLink = function(link, callback) {
 }
 
 // insert new encounter, replace any existing
+// {id:"123456632451234", network:"foo", at:"123412341234", from:"Me", fromID:"1234", orig:"http://bit.ly/foo", link:"http://foo.com/bar", via:{...}}
 exports.addEncounter = function(encounter, callback) {
     // create unique id as encounter.network+':'+encounter.id+':'+link, sha1 these or something?
     encounterCollection.findAndModify(XXX, [['_id','asc']], 

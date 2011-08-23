@@ -10,6 +10,8 @@
 // merge links from connectors
 
 var fs = require('fs'),
+    url = require('url'),
+    request = require('request'),
     locker = require('../../Common/node/locker.js');
     
 var dataIn = require('./dataIn'); // for processing incoming twitter/facebook/etc data types
@@ -86,12 +88,26 @@ app.get('/update', function(req, res) {
     res.end('Updating');
 });
 
+// just add embedly key and return result,
+// TODO: should do smart caching
 app.get('/embed', function(req, res) {
-    // TODO: add caching
     // TODO: need to load from apiKeys the right way
-    util.fetchEmbed(locker);
-    res.writeHead(200);
-    res.end('TODO');
+    var embedly = url.parse("http://api.embed.ly/1/oembed");
+    embedly.query = req.query;
+    embedly.query.key = "4f95c324c9dc11e083104040d3dc5c07";
+    request.get({uri:url.format(embedly)},function(err,resp,body){
+        var js;
+        try{
+            if(err) throw err;
+            js = JSON.parse(body);
+        }catch(E){
+            res.writeHead(500, {'Content-Type': 'text/plain'});
+            res.end(err);
+            return;
+        }
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify(js));
+    });
 });
 
 app.post('/events', function(req, res) {
