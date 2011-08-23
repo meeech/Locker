@@ -35,7 +35,7 @@ exports.init = function(dStore)
 exports.search = function(q, callback){
     lucene.search(indexPath, "content:("+q+")",function(err, res, time){
         if(err) return callback(err);
-        callback(res);
+        callback(null, res);
 //        res = res.sort(function(a,b){return b.at < a.at});
     });
 }

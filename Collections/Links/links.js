@@ -47,9 +47,14 @@ app.get('/state', function(req, res) {
 });
 
 app.get('/search', function(req, res) {
-    res.writeHead(200, {
-        'Content-Type': 'application/json'
+    if (!req.query.q) {
+        res.send([]);
+        return;
+    }
+    search.search(req.query["q"], function(err,results) {
+        res.send(results);
     });
+    /*
     res.write(JSON.stringify([
         {"link":"http://foo.com",
         "orig":"http://bit.ly/bar",
@@ -69,6 +74,7 @@ app.get('/search', function(req, res) {
         "eid":"asdfasdfasdf"}
         ]));
     res.end();
+    */
 });
 
 app.get('/allLinks', function(req, res) {
