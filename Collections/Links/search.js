@@ -73,9 +73,21 @@ exports.index = function(linkUrl, callback){
 }
 
 var indexQueue = async.queue(function(task, callback) {
+    //logger.debug("NDX "+id+" at "+at+" of "+txt);
+    var doc = new clucene.Document();
+    doc.addField("at", task.at, EStore.STORE_YES|EIndex.INDEX_UNTOKENIZED);
+    doc.addField('content', task.txt, EStore.STORE_NO|EIndex.INDEX_TOKENIZED);
+    lucene.addDocument(task.url, doc, indexPath, function(err, indexTime, docsReplaced) {
+        console.log("NDX DONE");
+        callback(err);
+    });
+    
+    /*
     ndx(task.url, task.at, task.txt, function(err, indexTime, docsReplacedCount) {
+        console.log("index queue callback");
         callback();
     });
+    */
 }, 1);
 
 // raw indexing lucene wrapper
@@ -86,6 +98,7 @@ function ndx(id,at,txt,cb)
     doc.addField("at", at, EStore.STORE_YES|EIndex.INDEX_UNTOKENIZED);
     doc.addField('content', txt, EStore.STORE_NO|EIndex.INDEX_TOKENIZED);
     lucene.addDocument(id, doc, indexPath, function(err, indexTime, docsReplaced) {
+        console.log("NDX DONE");
         cb(err, indexTime, docsReplaced);
     });
 }    

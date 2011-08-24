@@ -23,7 +23,7 @@ function queryLinksCollection (queryString) {
         for (var i = 0; i < data.length; ++i) {
             // We unset all the non compared fields
             var nextDate = new Date;
-            nextDate.setTime(data[i].at);
+            nextDate.setTime(parseInt(data[i].at) * 1000);
             nextDate.setHours(0);
             nextDate.setMinutes(0);
             nextDate.setSeconds(0);
@@ -39,7 +39,6 @@ function queryLinksCollection (queryString) {
             
             curLinks.push(data[i]);
         }
-        console.log(dateGroups);
         $("#results").render({groups:dateGroups,groupClass:"dateGroup"}, resultsTemplate);
         $("#results").show();
       },
@@ -94,8 +93,12 @@ $(function(){
                 "div.dateInfo":"group.date",
                 "div.linkInfo" : {
                     "link<-group.links": {
-                        "img.providerIcon@src":function(arg) {
-                            return "img/twitter.png";
+                        "img.providerIcon@src":function(arg, item) {
+                            var images = {
+                                "facebook":"img/facebook.png",
+                                "twitter":"img/twitter.png"
+                            };
+                            return images[arg.item.encounters[0].network];
                         },
                         "div.fullInfo@class+":function(arg) {
                             return arg.pos % 2 == 0 ? " even" : " odd";

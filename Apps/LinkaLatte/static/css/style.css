@@ -38,6 +38,7 @@ header input#linksQuery {
     color:white;
     padding:2px;
     margin-bottom:5px;
+    margin-top:5px;
 }
 
 /* Link Styles */
@@ -51,7 +52,7 @@ header input#linksQuery {
     margin-top:4px;
 }
 .fullInfo {
-    margin-left:40px;
+    margin-left:36px;
     padding:4px 4px 4px 8px;
 }
 .even {

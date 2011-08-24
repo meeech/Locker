@@ -63,8 +63,8 @@ exports.extractText = function(arg, cbEach, cbDone) {
 	if(ret)
 	{
 	    // normalize all whitespace nicely
-	    ret.text = ret.text.replace(/\s+/g, ' ');
-	    ret.title = ret.title.replace(/\s+/g, ' ');
+	    if (ret.text) ret.text = ret.text.replace(/\s+/g, ' ');
+	    if (ret.title) ret.title = ret.title.replace(/\s+/g, ' ');
     	cbEach(ret);
 	}
 	cbDone();

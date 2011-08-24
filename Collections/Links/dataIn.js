@@ -71,29 +71,35 @@ function getLinks(getter, lurl, callback) {
     });
 }
 
-// do all the dirty work to store a new encounter
-function processEncounter(e, callback)
+function processEncounter(e, cb) 
 {
+    encounterQueue.push(e, cb);
+}
+var encounterQueue = async.queue(function(e, callback) {
+    // do all the dirty work to store a new encounter
     var urls = [];
     // extract all links
-    util.extractUrls({text:e.text},function(u){urls.push(u)},function(err){
+    util.extractUrls({text:e.text},function(u){ urls.push(u); }, function(err){
         if(err) return callback(err);
         // for each one, run linkMagic on em
         if (urls.length === 0) return callback();
         async.forEach(urls,function(u,cb){
             linkMagic(u,function(link){
                 // make sure to pass in a new object, asyncutu
-                dataStore.addEncounter(lutil.extend(true,{orig:u,link:link},e),function(err,doc){
+                dataStore.addEncounter(lutil.extend(true,{orig:u,link:link},e), function(err,doc){
                     if(err) return cb(err);
                     dataStore.updateLinkAt(doc.link, doc.at, function() {
-                        search.index(doc.link,cb)
+                        console.log("Going to index " + doc.link);
+                        search.index(doc.link, function(err) {
+                            console.log("index done");
+                            cb();
+                        });
                     });
                 }); // once resolved, store the encounter
-                
             });
-        },callback);
+        }, callback);
     });
-}
+}, 1);
 
 // given a raw url, result in a fully stored qualified link (cb's full link url)
 function linkMagic(origUrl, callback){

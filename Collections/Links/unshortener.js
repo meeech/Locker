@@ -63,6 +63,8 @@ var Unshorteners = {
 
         Unshorteners.__request(query, 'www.googleapis.com', https,
                                function (data) {
+                                   console.log("googl " + query);
+                                   console.dir(data);
                                    callback(urllib.parse(data.longUrl));
                                });
 
