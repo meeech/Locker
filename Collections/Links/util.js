@@ -28,7 +28,7 @@ exports.extractUrls = function(arg, cbEach, cbDone) {
         // gotta do sanity cleanup for url.parse, it makes no assumptions I guess :/
         if(str.substr(0,4).toLowerCase() != "http") str = "http://"+str;
         var u = url.parse(str);
-        if(!u.host) continue; // TODO: fully normalize
+        if(!u.host || u.host.indexOf(".") <= 0 || u.host.length - u.host.indexOf(".") < 3) continue; // TODO: fully normalize
         cbEach(url.format(u));
     }
     cbDone();
@@ -41,25 +41,30 @@ exports.extractText = function(arg, cbEach, cbDone) {
 	var contentLength = 0, skipLevel = 0, 
 		parser, readable, ret;
 
-	// keep skipping unless/until we have a decent amount of text
-	while(contentLength < 250 && skipLevel < 4){
-	    parser = sax.parser(false, {
-		    lowercasetags : true
-		});
-	    
-	    readable = new readability.process(parser, {skipLevel:skipLevel});
-	    
-	    parser.write(arg.html).close();
-	    
-	    ret = readable.getArticle("text");
-	    contentLength = ret.textLength;
-	    skipLevel += 1;
-	}
-	
+    try{
+    	// keep skipping unless/until we have a decent amount of text
+    	while(contentLength < 250 && skipLevel < 4){
+    	    parser = sax.parser(false, {
+    		    lowercasetags : true
+    		});
+
+    	    readable = new readability.process(parser, {skipLevel:skipLevel});
+
+    	    parser.write(arg.html).close();
+
+    	    ret = readable.getArticle("text");
+    	    contentLength = ret.textLength;
+    	    skipLevel += 1;
+    	}        
+    }catch(E){
+        return cbDone(E);
+    }
+
 	if(ret)
 	{
 	    // normalize all whitespace nicely
 	    ret.text = ret.text.replace(/\s+/g, ' ');
+	    ret.title = ret.title.replace(/\s+/g, ' ');
     	cbEach(ret);
 	}
 	cbDone();
@@ -79,9 +84,9 @@ exports.extractFavicon = function(arg, cbEach, cbDone) {
 // handy wrapper
 exports.fetchHTML = function(arg, cbEach, cbDone) {
     if(!arg.url) return cbDone("no url");
-    // TODO: should accept-only html here, and check response validity
-    request.get({uri:arg.url},function(err,resp,body){
-	   if(err) return cbDone(err);
+    // sending blank accept encoding I guess means "none"
+    request.get({uri:arg.url, headers:{"Accept":"text/html","Accept-Encoding":""}},function(err,resp,body){
+	   if(err || !resp.headers["content-type"] || resp.headers["content-type"].indexOf("text/html") != 0) return cbDone(err);
 	    cbEach(body);
 	    cbDone();
 	});
