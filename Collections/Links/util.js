@@ -86,7 +86,7 @@ exports.fetchHTML = function(arg, cbEach, cbDone) {
     if(!arg.url) return cbDone("no url");
     // sending blank accept encoding I guess means "none"
     request.get({uri:arg.url, headers:{"Accept":"text/html","Accept-Encoding":""}},function(err,resp,body){
-	   if(err || !resp.headers["content-type"] || resp.headers["content-type"].indexOf("text/html") != 0) return cbDone(err);
+	   if(err || resp.statusCode != 200 || !resp.headers["content-type"] || resp.headers["content-type"].indexOf("text/html") != 0) return cbDone(err);
 	    cbEach(body);
 	    cbDone();
 	});

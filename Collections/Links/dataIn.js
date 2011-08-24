@@ -73,7 +73,11 @@ function getLinks(getter, lurl, callback) {
 
 function processEncounter(e, cb) 
 {
-    encounterQueue.push(e, cb);
+    encounterQueue.push(e, function(arg){
+        console.error("QUEUE SIZE: "+encounterQueue.length());        
+        cb(arg);
+    });
+    console.error("QUEUE SIZE: "+encounterQueue.length());
 }
 var encounterQueue = async.queue(function(e, callback) {
     // do all the dirty work to store a new encounter
@@ -95,7 +99,7 @@ var encounterQueue = async.queue(function(e, callback) {
             });
         }, callback);
     });
-}, 1);
+}, 5);
 
 // given a raw url, result in a fully stored qualified link (cb's full link url)
 function linkMagic(origUrl, callback){

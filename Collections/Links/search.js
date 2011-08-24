@@ -87,7 +87,7 @@ var indexQueue = async.queue(function(task, callback) {
         callback();
     });
     */
-}, 5);
+}, 1);
 
 // raw indexing lucene wrapper
 function ndx(id,at,txt,cb)
