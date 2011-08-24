@@ -28,7 +28,6 @@ exports.init = function(dStore)
     if (!path.existsSync(indexPath)) {
       fs.mkdirSync(indexPath, 0755);
     };
-    // TODO create queue for indexing
 }
 
 // basically just raw full lucene results
@@ -60,7 +59,7 @@ exports.index = function(linkUrl, callback){
                     // track newest for sorting timestamp
                     if(e.at > at) at = e.at;
                     // add text parts of each encounter, except via
-                    for(var a in e){if(a != "via") parts.push(e[a])};
+                    for(var a in e){if(a != "via" && a != "_hash") parts.push(e[a])};
                 },
                 function(err){
                     if(err) return callback(err);

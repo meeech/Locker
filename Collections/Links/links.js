@@ -77,10 +77,10 @@ app.get('/search', function(req, res) {
     });
 });
 
-app.get('/update', function(req, res) {
+app.get('/reindex', function(req, res) {
     dataIn.reIndex(locker);
     res.writeHead(200);
-    res.end('Updating');
+    res.end('Extra mince!');
 });
 
 // just add embedly key and return result: http://embed.ly/docs/endpoints/1/oembed
