@@ -37,7 +37,16 @@ exports.reIndex = function(locker) {
 // handle incoming events individually
 exports.processEvent = function(event)
 {
-    // TODO check event type and extract proper encounter
+    if(event.type.indexOf("facebook") > 0)
+    {
+        processEncounter(getEncounterFB(event.obj.data),function(){});
+    }
+    if(event.type.indexOf("twitter") > 0)
+    {
+        // what a mess
+        var tweet = (event.obj.data.sourceObject)?event.obj.data.sourceObject:event.obj.data;
+        processEncounter(getEncounterTwitter(tweet),function(){});
+    }
 }
 
 // used by reIndex to fetch and process each service
@@ -117,9 +126,14 @@ function linkMagic(origUrl, callback){
 
 function getEncounterFB(post)
 {
+    var text = [];
+    if(post.name) text.push(post.name);
+    if(post.message) text.push(post.message);
+    if(post.link) text.push(post.link);
+    // todo: handle comments?
     var e = {id:post.id
         , network:"facebook"
-        , text: post.message
+        , text: text.join(" ")
         , from: post.from.name
         , fromID: post.from.id
         , at: post.created_time
@@ -133,8 +147,8 @@ function getEncounterTwitter(tweet)
     var e = {id:tweet.id
         , network:"twitter"
         , text: tweet.text
-        , from: tweet.user.name
-        , fromID: tweet.user.id
+        , from: (tweet.user)?tweet.user.name:""
+        , fromID: (tweet.user)?tweet.user.id:""
         , at: new Date(tweet.created_at).getTime()
         , via: tweet
         };
