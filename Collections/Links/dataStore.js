@@ -79,7 +79,7 @@ function findWrap(a,b,c,cbEach,cbDone){
 // insert new (fully normalized) link, ignore or replace if it already exists? 
 // {link:"http://foo.com/bar", title:"Foo", text:"Foo bar is delicious.", favicon:"http://foo.com/favicon.ico"}
 exports.addLink = function(link, callback) {
-    logger.debug("addLink: "+JSON.stringify(link));
+    //logger.debug("addLink: "+JSON.stringify(link));
     linkCollection.findAndModify({"link":link.link}, [['_id','asc']], {$set:link}, {safe:true, upsert:true, new: true}, callback);
 }
 
@@ -91,7 +91,7 @@ exports.updateLinkAt = function(link, at, callback) {
 // {id:"123456632451234", network:"foo", at:"123412341234", from:"Me", fromID:"1234", orig:"http://bit.ly/foo", link:"http://foo.com/bar", via:{...}}
 exports.addEncounter = function(encounter, callback) {
     // create unique id as encounter.network+':'+encounter.id+':'+link, sha1 these or something?
-    logger.debug("addEncounter: "+JSON.stringify(encounter));
+    //logger.debug("addEncounter: "+JSON.stringify(encounter));
     var _hash = encounter.network + ":" + encounter.id + ":" + encounter.link;
     encounter["_hash"] = _hash;
     var options = {safe:true, upsert:true, new: true};
