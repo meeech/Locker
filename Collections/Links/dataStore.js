@@ -13,6 +13,7 @@ var linkCollection, encounterCollection;
 
 exports.init = function(lCollection, eCollection) {
     linkCollection = lCollection;
+    linkCollection.ensureIndex({"link":1},{unique:true},function() {});
     encounterCollection = eCollection;
 }
 
@@ -42,6 +43,7 @@ exports.checkUrl = function(origUrl, callback) {
 exports.getLinks = function(arg, cbEach, cbDone) {
     var f = (arg.link)?{link:arg.link}:{};
     delete arg.id;
+    arg.sort = {"link":-1};
     findWrap(f,arg,linkCollection,cbEach,cbDone);
 }
 
@@ -79,6 +81,10 @@ function findWrap(a,b,c,cbEach,cbDone){
 exports.addLink = function(link, callback) {
     logger.debug("addLink: "+JSON.stringify(link));
     linkCollection.findAndModify({"link":link.link}, [['_id','asc']], {$set:link}, {safe:true, upsert:true, new: true}, callback);
+}
+
+exports.updateLinkAt = function(link, at, callback) {
+    linkCollection.findAndModify({"link":link}, [['_id', 'asc']], {$set:{"at":at}}, {safe:true, upser:false, new:false}, callback);
 }
 
 // insert new encounter, replace any existing

@@ -136,7 +136,27 @@ function genericApi(name,f)
 }
 
 // expose way to get raw links and encounters
-genericApi('/getLinks',dataStore.getLinks);
+app.get('/getLinks', function(req, res) {
+    var fullResults = [];
+    var results = [];
+    dataStore.getLinks({}, function(item) { results.push(item); }, function(err) { 
+        async.forEach(results, function(link, callback) {
+            link.encounters = [];
+            dataStore.getEncounters({"link":link.link}, function(encounter) {
+                link.encounters.push(encounter);
+            }, function() {
+                fullResults.push(link);
+                callback();
+            });
+        }, function() {
+            // Done
+            fullResults.sort(function(lh, rh) {
+                return lh.at > rh.at;
+            });
+            res.send(fullResults);
+        });
+    });
+});
 genericApi('/getEncounters',dataStore.getEncounters);
 
 // expose all utils

@@ -4,8 +4,10 @@ var resultsTemplate = null;
 function queryLinksCollection (queryString) {
     console.log("Querying: " + $.param({q:queryString||""}));
     $(".dateGroup").remove();
+    var url = "/Me/" + collectionHandle + "/search?" + queryString;
+    if (!queryString) url = "/Me/" + collectionHandle + "/getLinks";
     $.ajax({
-      url: "/Me/" + collectionHandle + "/search?" + $.param({q:queryString||""}),
+      "url": url,
       type: "GET",
       dataType: "json",
       success: function(data) {

@@ -85,7 +85,9 @@ function processEncounter(e, callback)
                 // make sure to pass in a new object, asyncutu
                 dataStore.addEncounter(lutil.extend(true,{orig:u,link:link},e),function(err,doc){
                     if(err) return cb(err);
-                    search.index(doc.link,cb)
+                    dataStore.updateLinkAt(doc.link, doc.at, function() {
+                        search.index(doc.link,cb)
+                    });
                 }); // once resolved, store the encounter
                 
             });
