@@ -136,7 +136,7 @@ function genericApi(name,f)
 }
 
 // expose way to get raw links and encounters
-app.get('/getLinks', function(req, res) {
+app.get('/getLinksFull', function(req, res) {
     var fullResults = [];
     var results = [];
     dataStore.getLinks({}, function(item) { results.push(item); }, function(err) { 
@@ -157,6 +157,7 @@ app.get('/getLinks', function(req, res) {
         });
     });
 });
+genericApi('getLinks', dataStore.getLinks);
 genericApi('/getEncounters',dataStore.getEncounters);
 
 // expose all utils

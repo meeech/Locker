@@ -5,7 +5,7 @@ function queryLinksCollection (queryString) {
     console.log("Querying: " + $.param({q:queryString||""}));
     $(".dateGroup").remove();
     var url = "/Me/" + collectionHandle + "/search?" + queryString;
-    if (!queryString) url = "/Me/" + collectionHandle + "/getLinks";
+    if (!queryString) url = "/Me/" + collectionHandle + "/getLinksFull";
     $.ajax({
       "url": url,
       type: "GET",
