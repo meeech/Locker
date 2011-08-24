@@ -89,11 +89,7 @@ var encounterQueue = async.queue(function(e, callback) {
                 dataStore.addEncounter(lutil.extend(true,{orig:u,link:link},e), function(err,doc){
                     if(err) return cb(err);
                     dataStore.updateLinkAt(doc.link, doc.at, function() {
-                        console.log("Going to index " + doc.link);
-                        search.index(doc.link, function(err) {
-                            console.log("index done");
-                            cb();
-                        });
+                        search.index(doc.link, cb);
                     });
                 }); // once resolved, store the encounter
             });

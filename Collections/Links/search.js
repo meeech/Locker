@@ -65,7 +65,7 @@ exports.index = function(linkUrl, callback){
                     if(err) return callback(err);
                     parts.push(link.text); // add raw text at the end, lower score in lucene?
                     //ndx(linkUrl,at.toString(),parts.join(" <> ")); // does this break apart tokenization?
-                    indexQueue.push({url:linkUrl, "at":at.toString(), txt:parts.join(" <> ")});
+                    indexQueue.push({url:linkUrl, "at":at.toString(), txt:parts.join(" <> ")},callback);
                 }
             );
         }
@@ -78,7 +78,6 @@ var indexQueue = async.queue(function(task, callback) {
     doc.addField("at", task.at, EStore.STORE_YES|EIndex.INDEX_UNTOKENIZED);
     doc.addField('content', task.txt, EStore.STORE_NO|EIndex.INDEX_TOKENIZED);
     lucene.addDocument(task.url, doc, indexPath, function(err, indexTime, docsReplaced) {
-        console.log("NDX DONE");
         callback(err);
     });
     
@@ -88,7 +87,7 @@ var indexQueue = async.queue(function(task, callback) {
         callback();
     });
     */
-}, 1);
+}, 5);
 
 // raw indexing lucene wrapper
 function ndx(id,at,txt,cb)
