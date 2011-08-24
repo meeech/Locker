@@ -57,7 +57,6 @@ app.get('/search', function(req, res) {
         var fullResults = [];
         async.forEach(results, function(item, callback) {
             dataStore.getFullLink(item._id, function(link) {
-                console.log("Got full link for " + item._id);
                 link.at = item.at;
                 link.encounters = [];
                 dataStore.getEncounters({"link":link.link}, function(encounter) {

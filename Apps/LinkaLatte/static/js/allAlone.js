@@ -29,7 +29,7 @@ function queryLinksCollection (queryString) {
             
             // If it's a different date let's start a new group of links
             if (!curDate || nextDate.getTime() != curDate.getTime()) {
-                var newDateGroup = {date:nextDate, links:[]};
+                var newDateGroup = {date:nextDate.strftime("%A, %B %d, %Y"), links:[]};
                 dateGroups.push(newDateGroup);
                 curLinks = newDateGroup.links;
                 curDate = nextDate;
@@ -37,6 +37,7 @@ function queryLinksCollection (queryString) {
             
             curLinks.push(data[i]);
         }
+        console.log(dateGroups);
         $("#results").render({groups:dateGroups,groupClass:"dateGroup"}, resultsTemplate);
         $("#results").show();
       },
@@ -91,6 +92,13 @@ $(function(){
                 "div.dateInfo":"group.date",
                 "div.linkInfo" : {
                     "link<-group.links": {
+                        "img.providerIcon@src":function(arg) {
+                            return "img/twitter.png";
+                        },
+                        "div.fullInfo@class+":function(arg) {
+                            return arg.pos % 2 == 0 ? " even" : " odd";
+                        },
+                        "img.favicon@src":"link.favicon",
                         "a":"link.link",
                         "a@href":"link.link",
                         "div.linkDescription":"link.title"
