@@ -2,6 +2,7 @@ var request = require('request');
 var util = require('./util');
 var async = require('async');
 var logger = require(__dirname + "/../../Common/node/logger").logger;
+var lutil = require('lutil');
 
 var dataStore, locker, search;
 // internally we need these for happy fun stuff
@@ -13,21 +14,23 @@ exports.init = function(l, dStore, s){
 
 // manually walk and reindex all possible link sources
 exports.reIndex = function(locker) {
-    locker.providers(['link/facebook', 'status/twitter'], function(err, services) {
-        if (!services) return;
-        services.forEach(function(svc) {
-            if(svc.provides.indexOf('link/facebook') >= 0) {
-                getLinks(getEncounterFB, locker.lockerBase + '/Me/' + svc.id + '/getCurrent/newsfeed?limit=10', function() {
-                    getLinks(getEncounterFB, locker.lockerBase + '/Me/' + svc.id + '/getCurrent/wall?limit=10', function() {
-                        console.error('facebook done!');
+    dataStore.clear(function(){
+        locker.providers(['link/facebook', 'status/twitter'], function(err, services) {
+            if (!services) return;
+            services.forEach(function(svc) {
+                if(svc.provides.indexOf('link/facebook') >= 0) {
+                    getLinks(getEncounterFB, locker.lockerBase + '/Me/' + svc.id + '/getCurrent/newsfeed?limit=10', function() {
+                        getLinks(getEncounterFB, locker.lockerBase + '/Me/' + svc.id + '/getCurrent/wall?limit=10', function() {
+                            console.error('facebook done!');
+                        });
                     });
-                });
-            } else if(svc.provides.indexOf('status/twitter') >= 0) {
-                getLinks(getEncounterTwitter, locker.lockerBase + '/Me/' + svc.id + '/getCurrent/home_timeline?limit=10', function() {
-                    console.error('twitter done!');
-                });
-            }
-        });
+                } else if(svc.provides.indexOf('status/twitter') >= 0) {
+                    getLinks(getEncounterTwitter, locker.lockerBase + '/Me/' + svc.id + '/getCurrent/home_timeline?limit=10', function() {
+                        console.error('twitter done!');
+                    });
+                }
+            });
+        });        
     });
 }
 
@@ -59,7 +62,6 @@ function getLinks(getter, lurl, callback) {
 function processEncounter(e, callback)
 {
     var urls = [];
-logger.debug("processing encounter: "+JSON.stringify(e));
     // extract all links
     util.extractUrls({text:e.text},function(u){urls.push(u)},function(err){
         if(err) return callback(err);
@@ -67,11 +69,10 @@ logger.debug("processing encounter: "+JSON.stringify(e));
         if (urls.length === 0) return callback();
         async.forEach(urls,function(u,cb){
             linkMagic(u,function(link){
-                e.orig = u;
-                e.link = link;
-                dataStore.addEncounter(e,function(err){
+                // make sure to pass in a new object, asyncutu
+                dataStore.addEncounter(lutil.extend(true,{orig:u,link:link},e),function(err,doc){
                     if(err) return cb(err);
-                    search.index(link,cb)
+                    search.index(doc.link,cb)
                 }); // once resolved, store the encounter
                 
             });
@@ -85,14 +86,14 @@ function linkMagic(origUrl, callback){
     dataStore.checkUrl(origUrl,function(linkUrl){
         if(linkUrl) return callback(linkUrl); // short circuit!
         // new one, expand it to a full one
-        util.expandUrl({url:origUrl},function(u){linkUrl=u},function(){
+        util.expandUrl({url:origUrl},function(u2){linkUrl=u2},function(){
            // fallback use orig if errrrr
            if(!linkUrl) {
                linkUrl = origUrl;
             }
            var link = false;
            // does this full one already have a link stored?
-           dataStore.getLinks({url:linkUrl},function(l){link=l},function(err){
+           dataStore.getLinks({link:linkUrl,limit:1},function(l){link=l},function(err){
               if(link) {
                   return callback(link.link); // yeah short circuit dos!
               }

@@ -119,7 +119,33 @@ app.post('/events', function(req, res) {
     res.end('ok');
 });
 
-// TODO add endpoints for utils and dataStore calls!
+function genericApi(name,f)
+{
+    app.get(name,function(req,res){
+        var results = [];
+        f(req.query,function(item){results.push(item);},function(err){
+            if(err)
+            {
+                res.writeHead(500, {'Content-Type': 'text/plain'});
+                res.end(err);
+            }else{
+                res.writeHead(200, {'Content-Type': 'application/json'});
+                res.end(JSON.stringify(results));
+            }
+        });
+    });   
+}
+
+// expose way to get raw links and encounters
+genericApi('/getLinks',dataStore.getLinks);
+genericApi('/getEncounters',dataStore.getEncounters);
+
+// expose all utils
+for(var f in util)
+{
+    if(f == 'init') continue;
+    genericApi('/'+f,util[f]);
+}
 
 // Process the startup JSON object
 process.stdin.resume();

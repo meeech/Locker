@@ -16,6 +16,10 @@ exports.init = function(lCollection, eCollection) {
     encounterCollection = eCollection;
 }
 
+exports.clear = function(callback) {
+    linkCollection.drop(function(){encounterCollection.drop(callback)});
+}
+
 exports.getTotalLinks = function(callback) {
     linkCollection.count(callback);
 }
@@ -86,7 +90,7 @@ exports.addEncounter = function(encounter, callback) {
     encounter["_hash"] = _hash;
     var options = {safe:true, upsert:true, new: true};
     encounterCollection.findAndModify({"_hash":_hash}, [['_id','asc']], {$set:encounter}, options, function(err, doc) {
-        delete encounter["_hash"];
+        delete doc["_hash"];
         callback(err, doc);
     });
 }
