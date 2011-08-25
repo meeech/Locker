@@ -73,7 +73,7 @@ app.get('/search', function(req, res) {
         }, function() {
             // Done
             fullResults.sort(function(lh, rh) {
-                return lh.at > rh.at;
+                return rh.at > lh.at;
             });
             res.send(fullResults);
         });
