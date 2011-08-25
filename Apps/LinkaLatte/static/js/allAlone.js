@@ -137,8 +137,8 @@ $(function(){
                         },
                         "img.favicon@src":"link.favicon",
                         "a":function(arg) {
-                            if (arg.item.link.length > 300) {
-                                return arg.item.link.substring(300) + "...";
+                            if (arg.item.link.length > 100) {
+                                return arg.item.link.substring(0, 100) + "...";
                             } else {
                                 return arg.item.link;
                             }
