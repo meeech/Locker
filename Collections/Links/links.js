@@ -156,15 +156,11 @@ app.get('/getLinksFull', function(req, res) {
                 callback();
             });
         }, function() {
-            // Done
-            fullResults.sort(function(lh, rh) {
-                return lh.at > rh.at;
-            });
-            res.send(fullResults);
+            res.send(results);
         });
     });
 });
-genericApi('getLinks', dataStore.getLinks);
+genericApi('/getLinks', dataStore.getLinks);
 genericApi('/getEncounters',dataStore.getEncounters);
 
 // expose all utils

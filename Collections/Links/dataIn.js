@@ -129,6 +129,7 @@ function linkMagic(origUrl, callback){
                           // *pfew*, callback nausea, sometimes I wonder...
                           delete link.html; // don't want that stored
                           dataStore.addLink(link,function(){
+                              locker.event("link",link); // let happen independently
                               callback(link.link); // TODO: handle when it didn't get stored or is empty better, if even needed
                           });
                       });
@@ -139,13 +140,14 @@ function linkMagic(origUrl, callback){
     });
 }
 
+// TODO split out text we look for links in from text we want to index!
 function getEncounterFB(post)
 {
     var text = [];
     if(post.name) text.push(post.name);
     if(post.message) text.push(post.message);
     if(post.link) text.push(post.link);
-    if(post.caption) text.push(post.caption);
+    if(!post.message && post.caption) text.push(post.caption); // stab my eyes out, wtf facebook
     // todo: handle comments?
     var e = {id:post.id
         , network:"facebook"
