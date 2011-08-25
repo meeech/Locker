@@ -21,7 +21,7 @@ var testUtils = require(__dirname + "/test-utils.js");
 require.paths.push(__dirname + "/../Common/node");
 var serviceManager = require("lservicemanager.js");
 var lconfig = require("lconfig");
-lconfig.load("config.json");
+lconfig.load("Config/config.json");
 var path = require('path');
 
 var lmongoclient = require('../Common/node/lmongoclient.js')(lconfig.mongo.host, lconfig.mongo.port, 'disabletest', ['thing1','thing2']);
@@ -100,10 +100,6 @@ vows.describe("Service Manager").addBatch({
                 },
                 "and by creating a valid service instance directory" : function(svcMetaInfo) {
                     statInfo = fs.statSync(lconfig.me + "/" + svcMetaInfo.id);
-                },
-                "and by creating a valid auth.json file containing twitter auth info" : function(svcMetaInfo) {
-                    statInfo = fs.readFileSync(lconfig.me + "/" + svcMetaInfo.id + "/auth.json",'ascii');
-                    assert.equal(statInfo, '{"consumerKey":"daKey","consumerSecret":"daPassword"}');
                 },
                 "and passes along the icon": function(svcMetaInfo) {
                     assert.notEqual(svcMetaInfo.icon, undefined);

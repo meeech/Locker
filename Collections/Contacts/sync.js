@@ -14,14 +14,14 @@ var dataStore = require('./dataStore');
 var lockerUrl;
 var EventEmitter = require('events').EventEmitter;
 
-exports.init = function(theLockerUrl, mongoCollection) {
+exports.init = function(theLockerUrl, mongoCollection, mongo) {
     lockerUrl = theLockerUrl;
-    dataStore.init(mongoCollection);
+    dataStore.init(mongoCollection, mongo);
     exports.eventEmitter = new EventEmitter();
 }
 
 exports.gatherContacts = function() {
-    lconfig.load('../../config.json');
+    lconfig.load('../../Config/config.json');
     dataStore.clear(function(err) {
         // This should really be timered, triggered, something else
         locker.providers(['contact/facebook', 'contact/twitter', 

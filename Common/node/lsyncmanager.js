@@ -214,7 +214,7 @@ function executeSynclet(info, synclet, callback) {
 
 function compareIDs (originalConfig, newConfig) {
     var resp = {};
-    if (originalConfig.ids && newConfig.ids) {
+    if (originalConfig && originalConfig.ids && newConfig && newConfig.ids) {
         for (var i in newConfig.ids) {
             if (!originalConfig.ids[i]) break;
             var newSet = newConfig.ids[i];
@@ -292,18 +292,20 @@ function deleteData (collection, deleteIds, info, eventType, callback) {
 
 function addData (collection, data, info, eventType, callback) {
     async.forEach(data, function(object, cb) {
-        var newEvent = {obj : {source : collection, type: object.type, data: object.obj}};
-        newEvent.fromService = "synclet/" + info.id;
-        if (object.type === 'delete') {
-            datastore.removeObject(collection, object.obj[info.mongoId], {timeStamp: object.timestamp}, cb);
-            levents.fireEvent(eventType, newEvent.fromService, newEvent.obj.type, newEvent.obj);
-        } else {
-            datastore.addObject(collection, object.obj, {timeStamp: object.timestamp}, function(err, type) {
-                if (type === 'same') return cb();
-                newEvent.obj.type = type;
+        if (object.obj) {
+            var newEvent = {obj : {source : collection, type: object.type, data: object.obj}};
+            newEvent.fromService = "synclet/" + info.id;
+            if (object.type === 'delete') {
+                datastore.removeObject(collection, object.obj[info.mongoId], {timeStamp: object.timestamp}, cb);
                 levents.fireEvent(eventType, newEvent.fromService, newEvent.obj.type, newEvent.obj);
-                cb();
-            });
+            } else {
+                datastore.addObject(collection, object.obj, {timeStamp: object.timestamp}, function(err, type) {
+                    if (type === 'same') return cb();
+                    newEvent.obj.type = type;
+                    levents.fireEvent(eventType, newEvent.fromService, newEvent.obj.type, newEvent.obj);
+                    cb();
+                });
+            }
         }
     }, callback);
 }
@@ -326,16 +328,16 @@ function addUrls() {
         host = "http://";
     }
     host += lconfig.externalHost + ":" + lconfig.externalPort + "/";
-    if (path.existsSync(path.join(lconfig.lockerDir, lconfig.me, "apikeys.json"))) {
+    if (path.existsSync(path.join(lconfig.lockerDir, "Config", "apikeys.json"))) {
         try {
-            apiKeys = JSON.parse(fs.readFileSync(path.join(lconfig.lockerDir, lconfig.me, "apikeys.json"), 'ascii'));
+            apiKeys = JSON.parse(fs.readFileSync(path.join(lconfig.lockerDir, "Config", "apikeys.json"), 'ascii'));
         } catch(e) {
             return console.log('Error reading apikeys.json file - ' + e);
         }
         for (var i = 0; i < synclets.available.length; i++) {
             synclet = synclets.available[i];
             if (synclet.provider === 'facebook') {
-                if (apiKeys.facebook) synclet.authurl = "https://graph.facebook.com/oauth/authorize?client_id=" + apiKeys.facebook.appKey + '&response_type=code&redirect_uri=' + host + "auth/facebook/auth&scope=email,offline_access,read_stream,user_photos,friends_photos,publish_stream,user_photo_video_tags";
+                if (apiKeys.facebook) synclet.authurl = "https://graph.facebook.com/oauth/authorize?client_id=" + apiKeys.facebook.appKey + '&response_type=code&redirect_uri=' + host + "auth/facebook/auth&scope=email,offline_access,read_stream,user_photos,friends_photos,user_photo_video_tags";
             } else if (synclet.provider === 'twitter') {
                 if (apiKeys.twitter) synclet.authurl = host + "auth/twitter/auth";
             } else if (synclet.provider === 'foursquare') {
