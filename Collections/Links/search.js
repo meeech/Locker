@@ -73,7 +73,7 @@ exports.index = function(linkUrl, callback){
 }
 
 var indexQueue = async.queue(function(task, callback) {
-    //logger.debug("NDX "+id+" at "+at+" of "+txt);
+    logger.debug("NDX "+task.url+" at "+task.at+" of "+task.txt);
     var doc = new clucene.Document();
     doc.addField("at", task.at, EStore.STORE_YES|EIndex.INDEX_UNTOKENIZED);
     doc.addField('content', task.txt, EStore.STORE_NO|EIndex.INDEX_TOKENIZED);

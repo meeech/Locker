@@ -39,17 +39,18 @@ exports.reIndex = function(locker) {
 }
 
 // handle incoming events individually
-exports.processEvent = function(event)
+exports.processEvent = function(event, callback)
 {
+    if(!callback) callback = function(){};
+    // what a mess
+    var item = (event.obj.data.sourceObject)?event.obj.data.sourceObject:event.obj.data;
     if(event.type.indexOf("facebook") > 0)
     {
-        processEncounter(getEncounterFB(event.obj.data),function(){});
+        processEncounter(getEncounterFB(item),callback);
     }
     if(event.type.indexOf("twitter") > 0)
     {
-        // what a mess
-        var tweet = (event.obj.data.sourceObject)?event.obj.data.sourceObject:event.obj.data;
-        processEncounter(getEncounterTwitter(tweet),function(){});
+        processEncounter(getEncounterTwitter(item),callback);
     }
 }
 
@@ -142,6 +143,7 @@ function getEncounterFB(post)
     if(post.name) text.push(post.name);
     if(post.message) text.push(post.message);
     if(post.link) text.push(post.link);
+    if(post.caption) text.push(post.caption);
     // todo: handle comments?
     var e = {id:post.id
         , network:"facebook"
