@@ -58,8 +58,8 @@ app.get('/search', function(req, res) {
         async.forEach(results, function(item, callback) {
             dataStore.getFullLink(item._id, function(link) {
                 if (!link) {
-                    console.error(item._id);
-                    return;
+                    console.error("skipping not found: "+item._id);
+                    return callback();
                 }
                 link.at = item.at;
                 link.encounters = [];
@@ -72,10 +72,10 @@ app.get('/search', function(req, res) {
             });
         }, function() {
             // Done
-            fullResults.sort(function(lh, rh) {
-                return rh.at > lh.at;
+            var sorted = fullResults.sort(function(lh, rh) {
+                return rh.at - lh.at;
             });
-            res.send(fullResults);
+            res.send(sorted);
         });
     });
 });
