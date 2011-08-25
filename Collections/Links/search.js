@@ -77,7 +77,10 @@ var indexQueue = async.queue(function(task, callback) {
     var doc = new clucene.Document();
     doc.addField("at", task.at, EStore.STORE_YES|EIndex.INDEX_UNTOKENIZED);
     doc.addField('content', task.txt, EStore.STORE_NO|EIndex.INDEX_TOKENIZED);
+    console.log("Going to add " + task.url);
     lucene.addDocument(task.url, doc, indexPath, function(err, indexTime, docsReplaced) {
+        if (err) console.error(err);
+        console.log("Added " + task.url);
         callback(err);
     });
     
