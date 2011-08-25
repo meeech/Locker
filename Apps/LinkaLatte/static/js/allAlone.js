@@ -11,6 +11,7 @@ function queryLinksCollection (queryString) {
       type: "GET",
       dataType: "json",
       success: function(data) {
+          console.log(data);
         //called when successful
         $("#results").show();
         // First we sort it by the at field then we're going to group it by date
@@ -38,22 +39,6 @@ function queryLinksCollection (queryString) {
         }
         $("#results").render({groups:dateGroups,groupClass:"dateGroup"}, resultsTemplate);
         $("#results").show();
-        /*
-        $(".linkInfo").click(function() {
-            var elem = this;
-            $.ajax({
-              url: "/Me/" + collectionHandle + "/embed?url=" + $(this).find("a").attr("href"),
-              type: "GET",
-              dataType: "json",
-              success: function(data) {
-                  if (data.html) $(elem).find(".embedView").html(data.html).show(250);
-              },
-              error: function() {
-                  
-              },
-            });
-        });
-        */
         $(".viewMore").click(function() {
             if ($(this).text().indexOf("Hide") > 0) {
                 $(this).parents(".linkInfo").find(".embedView").hide(250);
@@ -155,6 +140,12 @@ $(function(){
                         "a":"link.link",
                         "a@href":"link.link",
                         "div.linkDescription":"link.title",
+                        "div.linkFrom":function(arg) {
+                            return "From: " + arg.item.encounters.map(function(item) { return item.from; }).join(", ");
+                        },
+                        "div.linkFrom@style":function(arg) {
+                            return arg.item.encounters[arg.item.encounters.length - 1].from ? "" : "display:none";
+                        },
                         "span.origLink@style":function(arg) {
                             return arg.item.encounters[arg.item.encounters.length - 1].orig == arg.item.link ? "display:none" : "";
                         },
@@ -167,9 +158,19 @@ $(function(){
             }
         }
     });
+    $("#searchForm").submit(function() {
+        queryLinksCollection($("#linksQuery").val());
+        return false;
+    });
+    $("#searchReset").click(function() {
+        $("#linksQuery").val("");
+        queryLinksCollection();
+        return false;
+    })
     findLinksCollection();
     $("#searchLinks").click(function(){
         queryLinksCollection($("#linksQuery").val());
+        return false;
     });
 })
 

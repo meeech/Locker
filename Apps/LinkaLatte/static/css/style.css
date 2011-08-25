@@ -45,6 +45,9 @@ header input#linksQuery {
 .linkInfo {
     clear:both;
 }
+.linkLine {
+    padding-bottom:2px;
+}
 .providerIcon {
     float:left;
     height:32px;
@@ -78,6 +81,10 @@ a.expandedLink {
     color:#666;
     font-size:90%;
     padding-left:4px;
+}
+.linkFrom {
+    font-size:80%;
+    color:#666;
 }
 .shiftDownDesc {
     /*line-height:32px;*/

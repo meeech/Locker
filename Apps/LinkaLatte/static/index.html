@@ -18,8 +18,9 @@
 
   <div id="container">
     <header>
+<<<<<<< HEAD
         <h3>LINKS</h3>
-        <div><input type='text' id='linksQuery'></input><input value='Search' type='button' id='searchLinks'></div>
+        <div><form id='searchForm'><input type='text' id='linksQuery'></input><input value='Search' type='button' id='searchLinks' /><input value='Reset' id='searchReset' /></form></div>
     </header>
     <div id="main" role="main">
         <div id='errorMsg'></div>
@@ -30,6 +31,7 @@
                     <img class='providerIcon' />
                     <div class='fullInfo'>
                         <div class='linkLine'><img onerror='hideMe()' class='favicon' /><a target='_new' href='' class='expandedLink'>http://example.com</a><span class='origLink'></span></div>
+                        <div class='linkFrom'></div>
                         <div class='linkDescription'>This is the link description</div><div class='viewMore'>&#9654; View</div>
                     </div>
                     <div class='embedView'></div>
