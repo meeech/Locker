@@ -150,7 +150,7 @@ function getEncounterFB(post)
         , text: text.join(" ")
         , from: post.from.name
         , fromID: post.from.id
-        , at: post.created_time
+        , at: post.created_time * 1000
         , via: post
         };
     return e;

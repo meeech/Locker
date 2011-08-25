@@ -5,7 +5,7 @@ function queryLinksCollection (queryString) {
     console.log("Querying: " + $.param({q:queryString||""}));
     $(".dateGroup").remove();
     var url = "/Me/" + collectionHandle + "/search?" + queryString;
-    if (!queryString) url = "/Me/" + collectionHandle + "/getLinksFull";
+    if (!queryString) url = "/Me/" + collectionHandle + "/getLinksFull?limit=100";
     $.ajax({
       "url": url,
       type: "GET",
@@ -14,16 +14,19 @@ function queryLinksCollection (queryString) {
         //called when successful
         $("#results").show();
         // First we sort it by the at field then we're going to group it by date
+        /*
         data.sort(function(lh, rh) {
-            return lh.at < rh.at;
+            return rh.at - lh.at;
         });
+        */
+        for (var i = 0; i < data.length; ++i) { var d = new Date(); d.setTime(data[i].at); console.log(d.strftime("%B %d")); }
         var dateGroups = []; // Array of objectcs matching {date:..., links:[...]}
         var curDate = null;
         var curLinks;
         for (var i = 0; i < data.length; ++i) {
             // We unset all the non compared fields
             var nextDate = new Date;
-            nextDate.setTime(parseInt(data[i].at) * 1000);
+            nextDate.setTime(parseInt(data[i].at));
             nextDate.setHours(0);
             nextDate.setMinutes(0);
             nextDate.setSeconds(0);

@@ -139,7 +139,14 @@ function genericApi(name,f)
 app.get('/getLinksFull', function(req, res) {
     var fullResults = [];
     var results = [];
-    dataStore.getLinks({}, function(item) { results.push(item); }, function(err) { 
+    var options = {sort:{"at":-1}};
+    if (req.query.limit) {
+        options.limit = parseInt(req.query.limit);
+    }
+    if (req.query.offset) {
+        options.offset = parseInt(req.query.offset);
+    }
+    dataStore.getLinks(options, function(item) { results.push(item); }, function(err) { 
         async.forEach(results, function(link, callback) {
             link.encounters = [];
             dataStore.getEncounters({"link":link.link}, function(encounter) {

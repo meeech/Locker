@@ -43,7 +43,6 @@ exports.checkUrl = function(origUrl, callback) {
 exports.getLinks = function(arg, cbEach, cbDone) {
     var f = (arg.link)?{link:arg.link}:{};
     delete arg.id;
-    arg.sort = {"link":-1};
     findWrap(f,arg,linkCollection,cbEach,cbDone);
 }
 
@@ -63,15 +62,16 @@ exports.getEncounters = function(arg, cbEach, cbDone) {
 }
 
 function findWrap(a,b,c,cbEach,cbDone){
-    c.find(a, {}, b, function(err, cursor){
-        if(err) return cbDone(err);
-        cursor.each(function(err, item) {
-            if (item != null) {
-                cbEach(item);
-            } else {
-                cbDone();
-            }
-        });
+    console.log("a(" + JSON.stringify(a) + ") b("+ JSON.stringify(b) + ")");
+    var cursor = c.find(a, b);
+    if (b.sort) cursor.sort(b.sort);
+    if (b.limit) cursor.limit(b.limit);
+    cursor.each(function(err, item) {
+        if (item != null) {
+            cbEach(item);
+        } else {
+            cbDone();
+        }
     });
 }
 
