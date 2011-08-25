@@ -136,10 +136,17 @@ function genericApi(name,f)
 }
 
 // expose way to get raw links and encounters
-app.get('/getLinks', function(req, res) {
+app.get('/getLinksFull', function(req, res) {
     var fullResults = [];
     var results = [];
-    dataStore.getLinks({}, function(item) { results.push(item); }, function(err) { 
+    var options = {sort:{"at":-1}};
+    if (req.query.limit) {
+        options.limit = parseInt(req.query.limit);
+    }
+    if (req.query.offset) {
+        options.offset = parseInt(req.query.offset);
+    }
+    dataStore.getLinks(options, function(item) { results.push(item); }, function(err) { 
         async.forEach(results, function(link, callback) {
             link.encounters = [];
             dataStore.getEncounters({"link":link.link}, function(encounter) {
@@ -157,6 +164,7 @@ app.get('/getLinks', function(req, res) {
         });
     });
 });
+genericApi('getLinks', dataStore.getLinks);
 genericApi('/getEncounters',dataStore.getEncounters);
 
 // expose all utils

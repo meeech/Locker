@@ -94,7 +94,9 @@ var encounterQueue = async.queue(function(e, callback) {
                 dataStore.addEncounter(lutil.extend(true,{orig:u,link:link},e), function(err,doc){
                     if(err) return cb(err);
                     dataStore.updateLinkAt(doc.link, doc.at, function() {
-                        search.index(doc.link, cb);
+                        search.index(doc.link, function() {
+                            cb()
+                        });
                     });
                 }); // once resolved, store the encounter
             });
@@ -150,7 +152,7 @@ function getEncounterFB(post)
         , text: text.join(" ")
         , from: post.from.name
         , fromID: post.from.id
-        , at: post.created_time
+        , at: post.created_time * 1000
         , via: post
         };
     return e;

@@ -67,3 +67,7 @@ a.expandedLink {
     color:#7f7f7f;
     margin-left: 4px;
 }
+.linkDescription {
+    min-height:16px;
+    padding:2px;
+}
