@@ -11,7 +11,6 @@ function queryLinksCollection (queryString) {
       type: "GET",
       dataType: "json",
       success: function(data) {
-          console.log(data);
         //called when successful
         $("#results").show();
         // First we sort it by the at field then we're going to group it by date
@@ -51,7 +50,6 @@ function queryLinksCollection (queryString) {
                   type: "GET",
                   dataType: "json",
                   success: function(data) {
-                      console.log(data);
                       if (data.html) {
                           elem.html(data.html);
                       } else if (data.thumbnail_url) {
@@ -159,6 +157,8 @@ $(function(){
             }
         }
     });
+    $("#main").height($(window).height() - $("header").height() - 20);
+    $("#main").width($(window).width() - 20);
     $("#searchForm").submit(function() {
         queryLinksCollection($("#linksQuery").val());
         return false;
