@@ -15,6 +15,7 @@ var lsearch = require("../../Common/node/lsearch");
 var lockerInfo;
 var express = require('express'),
     connect = require('connect');
+var async = require('async');
 var app = express.createServer(connect.bodyParser());
 
 app.set('views', __dirname);
@@ -103,19 +104,31 @@ app.get("/query", function(req, res) {
     
     if (!q || q === '*') {
         res.writeHead(400);
-        res.end("Must supply at least a query");
+        res.end("Please supply valid query string");
         return;
     }
+
     function sendResults(err, results, queryTime) {
         if (err) {
             res.writeHead(500);
             res.end("Error querying: " + err);
             return;
         }
-        var data = {};
-        data.hits = results;
-        data.took = queryTime;
-        res.send(data);
+		
+		enrichResultsWithFullObjects(results, function(err, richResults) {
+			var data = {};
+			data.took = queryTime;
+			
+			if (err) {
+				data.error = err;
+				data.hits = [];
+				res.send(data);
+			}
+			
+			data.error = null;
+			data.hits = richResults;     
+	        res.send(data);
+		});
     }
     if (type) {
         lsearch.queryType(type, q, {}, sendResults);
@@ -123,6 +136,50 @@ app.get("/query", function(req, res) {
         lsearch.queryAll(q, {}, sendResults);
     }
 });
+
+function cullAndSortResults(results, callback) {
+	var resultSet = [];
+	// group results by type
+	
+	// sort each type category by relevance score
+	
+	callback(null, resultSet);
+}
+
+function enrichResultsWithFullObjects(results, callback) {
+	// fetch full objects of results
+	async.waterfall({
+		cullAndSort: function(waterfallCb) {
+			cullAndSortResults(results, function(err, results) {
+				waterfallCb(err, results);
+			});
+		},
+		enrich: function(results, waterfallCb) {
+			forEachSeries(results, function(item, function(err, item) {
+				var splitType = item._type.split('/');
+				if (splitType.length > 1) {
+					// query /Me/:collectionId/:id
+					// item = updatedItem
+				} else {
+					// get all syncletIds of the given type
+					// for each syncletId
+						// query /Me/:syncletId/:type/:id
+						// push result onto resultSet;
+					//
+				}
+			}), 
+			function(err) {
+				waterfallCb(err, results);
+			});	
+		}
+	},
+	function(err, results) {		
+		if (err) {	
+			callback('Error when attempting to sort and enrich search results: ' + err, []);
+		}
+		callback(null, results);
+	});
+}
 
 // Process the startup JSON object
 process.stdin.resume();
