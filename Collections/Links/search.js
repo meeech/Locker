@@ -32,7 +32,7 @@ exports.init = function(dStore)
 }
 
 exports.resetIndex = function() {
-    if(path.existsSync(indexPath) wrench.rmdirSyncRecursive(indexPath);
+    if(path.existsSync(indexPath)) wrench.rmdirSyncRecursive(indexPath);
 }
 
 // basically just raw full lucene results
