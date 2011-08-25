@@ -31,8 +31,13 @@ exports.init = function(dStore)
     };
 }
 
-exports.resetIndex = function() {
-    if(path.existsSync(indexPath)) wrench.rmdirSyncRecursive(indexPath);
+exports.resetIndex = function() 
+{
+    try {
+        wrench.rmdirSyncRecursive(indexPath);
+    } catch (E) {
+        // Ignoring if the dir does not exist
+    }
 }
 
 // basically just raw full lucene results

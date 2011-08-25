@@ -38,22 +38,6 @@ function queryLinksCollection (queryString) {
         }
         $("#results").render({groups:dateGroups,groupClass:"dateGroup"}, resultsTemplate);
         $("#results").show();
-        /*
-        $(".linkInfo").click(function() {
-            var elem = this;
-            $.ajax({
-              url: "/Me/" + collectionHandle + "/embed?url=" + $(this).find("a").attr("href"),
-              type: "GET",
-              dataType: "json",
-              success: function(data) {
-                  if (data.html) $(elem).find(".embedView").html(data.html).show(250);
-              },
-              error: function() {
-                  
-              },
-            });
-        });
-        */
         $(".viewMore").click(function() {
             if ($(this).text().indexOf("Hide") > 0) {
                 $(this).parents(".linkInfo").find(".embedView").hide(250);
@@ -66,7 +50,6 @@ function queryLinksCollection (queryString) {
                   type: "GET",
                   dataType: "json",
                   success: function(data) {
-                      console.log(data);
                       if (data.html) {
                           elem.html(data.html);
                       } else if (data.thumbnail_url) {
@@ -113,6 +96,7 @@ function findLinksCollection()
               showError("Could not find a valid links Collection to display.  Please contact your system administrator.");
               return;
           }
+          updateLinkCount();
           queryLinksCollection();
       },
       error: function() {
@@ -152,9 +136,21 @@ $(function(){
                             return theClass;
                         },
                         "img.favicon@src":"link.favicon",
-                        "a":"link.link",
+                        "a":function(arg) {
+                            if (arg.item.link.length > 100) {
+                                return arg.item.link.substring(0, 100) + "...";
+                            } else {
+                                return arg.item.link;
+                            }
+                        },
                         "a@href":"link.link",
                         "div.linkDescription":"link.title",
+                        "div.linkFrom":function(arg) {
+                            return "From: " + arg.item.encounters.map(function(item) { return item.from; }).join(", ");
+                        },
+                        "div.linkFrom@style":function(arg) {
+                            return arg.item.encounters[arg.item.encounters.length - 1].from ? "" : "display:none";
+                        },
                         "span.origLink@style":function(arg) {
                             return arg.item.encounters[arg.item.encounters.length - 1].orig == arg.item.link ? "display:none" : "";
                         },
@@ -167,13 +163,39 @@ $(function(){
             }
         }
     });
+    $("#main").height($(window).height() - $("header").height() - 20);
+    $("#main").width($(window).width() - 20);
+    $("#searchForm").submit(function() {
+        queryLinksCollection($("#linksQuery").val());
+        return false;
+    });
+    $("#searchReset").click(function() {
+        $("#linksQuery").val("");
+        queryLinksCollection();
+        return false;
+    })
     findLinksCollection();
     $("#searchLinks").click(function(){
         queryLinksCollection($("#linksQuery").val());
+        return false;
     });
 })
 
 function hideMe()
 {
     $(event.srcElement).hide();
+}
+
+function updateLinkCount() {
+      $.ajax({
+        url: "/Me/" + collectionHandle + "/state",
+        type: "GET",
+        dataType: "json",
+        complete:function() {
+            setTimeout(updateLinkCount, 10000);
+        },
+        success: function(data) {
+            $("#linkCounter").text(data.count + " links");
+        },
+      });
 }

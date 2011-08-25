@@ -1,6 +1,8 @@
 body {
     font-family:sans-serif;
     background-color:white;
+    width:100%;
+    height:100%;
 }
 
 #errorMsg {
@@ -26,10 +28,15 @@ header h3 {
     margin:0;
     padding:2px;
 }
-
 header input#linksQuery {
     background-color:#f6f6f6;
     border:1px solid #dedede;
+    width:250px;
+}
+
+#linkCounter {
+    font-size:80%;
+    color:#666;
 }
 
 /* Group Styles */
@@ -40,10 +47,15 @@ header input#linksQuery {
     margin-bottom:5px;
     margin-top:5px;
 }
-
+#main {
+    overflow:scroll;
+}
 /* Link Styles */
 .linkInfo {
     clear:both;
+}
+.linkLine {
+    padding-bottom:2px;
 }
 .providerIcon {
     float:left;
@@ -78,6 +90,10 @@ a.expandedLink {
     color:#666;
     font-size:90%;
     padding-left:4px;
+}
+.linkFrom {
+    font-size:80%;
+    color:#666;
 }
 .shiftDownDesc {
     /*line-height:32px;*/
