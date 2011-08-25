@@ -11,7 +11,6 @@ function queryLinksCollection (queryString) {
       type: "GET",
       dataType: "json",
       success: function(data) {
-          console.log(data);
         //called when successful
         $("#results").show();
         // First we sort it by the at field then we're going to group it by date
@@ -51,7 +50,6 @@ function queryLinksCollection (queryString) {
                   type: "GET",
                   dataType: "json",
                   success: function(data) {
-                      console.log(data);
                       if (data.html) {
                           elem.html(data.html);
                       } else if (data.thumbnail_url) {
@@ -98,6 +96,7 @@ function findLinksCollection()
               showError("Could not find a valid links Collection to display.  Please contact your system administrator.");
               return;
           }
+          updateLinkCount();
           queryLinksCollection();
       },
       error: function() {
@@ -137,7 +136,13 @@ $(function(){
                             return theClass;
                         },
                         "img.favicon@src":"link.favicon",
-                        "a":"link.link",
+                        "a":function(arg) {
+                            if (arg.item.link.length > 300) {
+                                return arg.item.link.substring(300) + "...";
+                            } else {
+                                return arg.item.link;
+                            }
+                        },
                         "a@href":"link.link",
                         "div.linkDescription":"link.title",
                         "div.linkFrom":function(arg) {
@@ -158,6 +163,8 @@ $(function(){
             }
         }
     });
+    $("#main").height($(window).height() - $("header").height() - 20);
+    $("#main").width($(window).width() - 20);
     $("#searchForm").submit(function() {
         queryLinksCollection($("#linksQuery").val());
         return false;
@@ -177,4 +184,18 @@ $(function(){
 function hideMe()
 {
     $(event.srcElement).hide();
+}
+
+function updateLinkCount() {
+      $.ajax({
+        url: "/Me/" + collectionHandle + "/state",
+        type: "GET",
+        dataType: "json",
+        complete:function() {
+            setTimeout(updateLinkCount, 10000);
+        },
+        success: function(data) {
+            $("#linkCounter").text(data.count + " links");
+        },
+      });
 }
