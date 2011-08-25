@@ -136,7 +136,13 @@ $(function(){
                             return theClass;
                         },
                         "img.favicon@src":"link.favicon",
-                        "a":"link.link",
+                        "a":function(arg) {
+                            if (arg.item.link.length > 300) {
+                                return arg.item.link.substring(300) + "...";
+                            } else {
+                                return arg.item.link;
+                            }
+                        },
                         "a@href":"link.link",
                         "div.linkDescription":"link.title",
                         "div.linkFrom":function(arg) {
