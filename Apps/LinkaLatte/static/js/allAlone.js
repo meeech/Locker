@@ -98,6 +98,7 @@ function findLinksCollection()
               showError("Could not find a valid links Collection to display.  Please contact your system administrator.");
               return;
           }
+          updateLinkCount();
           queryLinksCollection();
       },
       error: function() {
@@ -177,4 +178,18 @@ $(function(){
 function hideMe()
 {
     $(event.srcElement).hide();
+}
+
+function updateLinkCount() {
+      $.ajax({
+        url: "/Me/" + collectionHandle + "/state",
+        type: "GET",
+        dataType: "json",
+        complete:function() {
+            setTimeout(updateLinkCount, 10000);
+        },
+        success: function(data) {
+            $("#linkCounter").text(data.count + " links");
+        },
+      });
 }
