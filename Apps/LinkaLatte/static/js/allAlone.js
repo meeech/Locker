@@ -4,6 +4,7 @@ var resultsTemplate = null;
 function queryLinksCollection (queryString) {
     console.log("Querying: " + $.param({q:queryString||""}));
     $(".dateGroup").remove();
+    $("#infoMsg").hide();
     var url = "/Me/" + collectionHandle + "/search?q=" + queryString;
     if (!queryString) url = "/Me/" + collectionHandle + "/getLinksFull?limit=100";
     $.ajax({
@@ -12,7 +13,12 @@ function queryLinksCollection (queryString) {
       dataType: "json",
       success: function(data) {
         //called when successful
-        $("#results").show();
+        if (!data || data.length == 0) {
+            $("#infoMsg").attr("class", "info");
+            $("#infoMsg").text("No results found");
+            $("#infoMsg").show();
+            return;
+        }
         // First we sort it by the at field then we're going to group it by date
         var dateGroups = []; // Array of objectcs matching {date:..., links:[...]}
         var curDate = null;
@@ -107,8 +113,9 @@ function findLinksCollection()
 }
 function showError(errorMessage)
 {
-    $("#errorMsg").text(errorMessage);
-    $("#errorMsg").show();
+    $("#infoMsg").text(errorMessage);
+    $("#infoMsg").attr("class", "error");
+    $("#infoMsg").show();
     $("#results").hide();
     $("#loading").hide();
 }
