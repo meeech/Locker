@@ -4,7 +4,7 @@ var resultsTemplate = null;
 function queryLinksCollection (queryString) {
     console.log("Querying: " + $.param({q:queryString||""}));
     $(".dateGroup").remove();
-    var url = "/Me/" + collectionHandle + "/search?" + queryString;
+    var url = "/Me/" + collectionHandle + "/search?q=" + queryString;
     if (!queryString) url = "/Me/" + collectionHandle + "/getLinksFull?limit=100";
     $.ajax({
       "url": url,
@@ -14,12 +14,6 @@ function queryLinksCollection (queryString) {
         //called when successful
         $("#results").show();
         // First we sort it by the at field then we're going to group it by date
-        /*
-        data.sort(function(lh, rh) {
-            return rh.at - lh.at;
-        });
-        */
-        for (var i = 0; i < data.length; ++i) { var d = new Date(); d.setTime(data[i].at); console.log(d.strftime("%B %d")); }
         var dateGroups = []; // Array of objectcs matching {date:..., links:[...]}
         var curDate = null;
         var curLinks;
@@ -44,6 +38,53 @@ function queryLinksCollection (queryString) {
         }
         $("#results").render({groups:dateGroups,groupClass:"dateGroup"}, resultsTemplate);
         $("#results").show();
+        /*
+        $(".linkInfo").click(function() {
+            var elem = this;
+            $.ajax({
+              url: "/Me/" + collectionHandle + "/embed?url=" + $(this).find("a").attr("href"),
+              type: "GET",
+              dataType: "json",
+              success: function(data) {
+                  if (data.html) $(elem).find(".embedView").html(data.html).show(250);
+              },
+              error: function() {
+                  
+              },
+            });
+        });
+        */
+        $(".viewMore").click(function() {
+            if ($(this).text().indexOf("Hide") > 0) {
+                $(this).parents(".linkInfo").find(".embedView").hide(250);
+                $(this).html("&#9654; View");
+            } else {
+                var elem = $(this).parents(".linkInfo").find(".embedView");
+                var E = $(this);
+                $.ajax({
+                  url: "/Me/" + collectionHandle + "/embed?url=" + $(this).parents(".linkInfo").find("a").attr("href"),
+                  type: "GET",
+                  dataType: "json",
+                  success: function(data) {
+                      console.log(data);
+                      if (data.html) {
+                          elem.html(data.html);
+                      } else if (data.thumbnail_url) {
+                          elem.html("<img src='" + data.thumbnail_url + "' /><div>" + data.description||"" + "</div>");
+                      } else {
+                          elem.html("No preview.");
+                      }
+                      elem.show(250);
+                      E.html("&#x25bc; Hide");
+                  },
+                  error: function() {
+
+                  },
+                });
+                E.html("<img src='img/ajax-loader.gif' /> Loading...");
+                //$(this).html("&#9654; View");
+            }
+        })
       },
       error: function() {
         //called when there is an error
@@ -91,25 +132,36 @@ function showError(errorMessage)
 $(function(){
     resultsTemplate = $p("#results").compile({
         "div.templateDateGroup" : {
+            // Loop on each date group
             "group<-groups" : {
                 "@class":"groupClass",
                 "div.dateInfo":"group.date",
                 "div.linkInfo" : {
+                    // On each date group we loop the links
                     "link<-group.links": {
                         "img.providerIcon@src":function(arg, item) {
                             var images = {
                                 "facebook":"img/facebook.png",
                                 "twitter":"img/twitter.png"
                             };
-                            return images[arg.item.encounters[0].network];
+                            return images[arg.item.encounters[arg.item.encounters.length - 1].network];
                         },
                         "div.fullInfo@class+":function(arg) {
-                            return arg.pos % 2 == 0 ? " even" : " odd";
+                            var theClass = arg.pos % 2 == 0 ? " even" : " odd";
+                            if (!arg.item.title && arg.item.link.length < 200) theClass += " shiftDownDesc";
+                            return theClass;
                         },
                         "img.favicon@src":"link.favicon",
                         "a":"link.link",
                         "a@href":"link.link",
-                        "div.linkDescription":"link.title"
+                        "div.linkDescription":"link.title",
+                        "span.origLink@style":function(arg) {
+                            return arg.item.encounters[arg.item.encounters.length - 1].orig == arg.item.link ? "display:none" : "";
+                        },
+                        "span.origLink":function(arg) {
+                            var orig = arg.item.encounters[arg.item.encounters.length - 1].orig;
+                            return orig != arg.item.link ? "(" + orig + ")" : "";
+                        },
                     }
                 }
             }
@@ -120,3 +172,8 @@ $(function(){
         queryLinksCollection($("#linksQuery").val());
     });
 })
+
+function hideMe()
+{
+    $(event.srcElement).hide();
+}

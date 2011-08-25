@@ -4,6 +4,7 @@ var path = require('path');
 var fs = require('fs');
 var async = require("async");
 var logger = require(__dirname + "/../../Common/node/logger").logger;
+var wrench = require("wrench");
 
 // constants, graciously lifted from lsearch
 var EStore = {
@@ -28,6 +29,10 @@ exports.init = function(dStore)
     if (!path.existsSync(indexPath)) {
       fs.mkdirSync(indexPath, 0755);
     };
+}
+
+exports.resetIndex = function() {
+    wrench.rmdirSyncRecursive(indexPath);
 }
 
 // basically just raw full lucene results

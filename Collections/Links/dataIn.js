@@ -14,6 +14,7 @@ exports.init = function(l, dStore, s){
 
 // manually walk and reindex all possible link sources
 exports.reIndex = function(locker) {
+    search.resetIndex();
     dataStore.clear(function(){
         locker.providers(['link/facebook', 'status/twitter'], function(err, services) {
             if (!services) return;
@@ -128,6 +129,7 @@ function linkMagic(origUrl, callback){
                       util.extractFavicon({url:linkUrl,html:link.html},function(fav){link.favicon=fav},function(){
                           // *pfew*, callback nausea, sometimes I wonder...
                           delete link.html; // don't want that stored
+                          if (!link.at) link.at = Date.now();
                           dataStore.addLink(link,function(){
                               locker.event("link",link); // let happen independently
                               callback(link.link); // TODO: handle when it didn't get stored or is empty better, if even needed
