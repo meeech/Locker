@@ -165,7 +165,7 @@ function getEncounterTwitter(tweet)
 {
     var e = {id:tweet.id
         , network:"twitter"
-        , text: tweet.text
+        , text: tweet.text + " " + tweet.user.screen_name
         , from: (tweet.user)?tweet.user.name:""
         , fromID: (tweet.user)?tweet.user.id:""
         , at: new Date(tweet.created_at).getTime()
