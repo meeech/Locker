@@ -66,7 +66,7 @@ function getLinks(getter, lurl, callback) {
         }
         async.forEachSeries(arr,function(a,cb){
             var e = getter(a);
-            if(!e.text) continue;
+            if(!e.text) return cb();
             processEncounter(e,function(err){if(err) console.log("getLinks error:"+err); cb()});
         },callback);
     });
