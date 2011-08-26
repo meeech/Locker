@@ -15,6 +15,7 @@ var lsearch = require("../../Common/node/lsearch");
 var lockerInfo;
 var express = require('express'),
     connect = require('connect');
+var request = require('request');
 var async = require('async');
 var app = express.createServer(connect.bodyParser());
 
@@ -32,13 +33,12 @@ app.post("/events", function(req, res) {
     if (req.headers["content-type"] === "application/json" && req.body) {
         if (req.body.type === "contact/full") {
             if (req.body.action === "new" || req.body.action === "update") {
-                lsearch.indexType("contact", req.body.obj.data, function(err, time) {
+                lsearch.indexType("contacts", req.body.obj.data, function(err, time) {
                     if (err) { handleError(req.body.type, req.body.action, req.body._id, err); }
                 });
             } else if (req.body.action === "delete") {
                 lsearch.deleteDocument(req.body.obj.data._id, function(err, time, docsDeleted) {
                     if (err) { handleError(req.body.type, req.body.action, req.body._id, err); }
-                    console.log('Received delete event for contact/full id: ' + req.body._id);
                 });
             }
             res.end();
@@ -65,11 +65,11 @@ app.post("/events", function(req, res) {
             }
             res.end();
         } else {
-            console.log("Unexpected event: " + req.body.type + " and " + req.body.action);
+            console.c("Unexpected event: " + req.body.type + " and " + req.body.action);
             res.end();
         }
     } else {
-        console.log("Unexpected event or not json " + req.headers["content-type"]);
+        console.error("Unexpected event or not json " + req.headers["content-type"]);
         res.end();
     }
 });
@@ -80,9 +80,9 @@ app.post("/index", function(req, res) {
         res.end("Invalid arguments");
         return;
     }
-    
+    var value = {};
     try {
-        var value = JSON.parse(req.body.value);
+        value = JSON.parse(req.body.value);
     } catch(E) {
         res.writeHead(500);
         res.end("invalid json in value");
@@ -114,21 +114,22 @@ app.get("/query", function(req, res) {
             res.end("Error querying: " + err);
             return;
         }
-		
-		enrichResultsWithFullObjects(results, function(err, richResults) {
-			var data = {};
-			data.took = queryTime;
-			
-			if (err) {
-				data.error = err;
-				data.hits = [];
-				res.send(data);
-			}
-			
-			data.error = null;
-			data.hits = richResults;     
-	        res.send(data);
-		});
+
+        enrichResultsWithFullObjects(results, function(err, richResults) {
+            var data = {};
+            data.took = queryTime;
+        
+            if (err) {
+                data.error = err;
+                data.hits = [];
+                res.end(JSON.stringify(data));
+            }
+        
+            data.error = null;
+            data.hits = richResults;     
+            res.end(JSON.stringify(data));
+        });
+        
     }
     if (type) {
         lsearch.queryType(type, q, {}, sendResults);
@@ -138,47 +139,83 @@ app.get("/query", function(req, res) {
 });
 
 function cullAndSortResults(results, callback) {
-	var resultSet = [];
-	// group results by type
-	
-	// sort each type category by relevance score
-	
-	callback(null, resultSet);
+    async.sortBy(results, function(item, sortByCb) {
+        // we concatenate the score to the type, and we use the reciprocal of the score so the sort has the best scores at the top
+        sortByCb(null, item._type + (1/item.score).toFixed(3));
+    },
+    function(err, results) {
+       callback(null, results); 
+    });
+}
+
+function makeEnrichedRequest(url, item, callback) {
+    request.get({uri:url}, function(err, res, body) {
+        if (err) {
+            console.error('Error when attempting to enrich search results: ' + err);
+            callback(err);
+            return;
+        } 
+        if (res.statusCode >= 400) {
+            var error = 'Received a ' + res.statusCode + ' when attempting to enrich search results';
+            console.error(error);
+            callback(error);
+            return;
+        }
+        console.error(body);
+        item.fullobject = JSON.parse(body);
+        callback(null);
+    });
 }
 
 function enrichResultsWithFullObjects(results, callback) {
-	// fetch full objects of results
-	async.waterfall({
-		cullAndSort: function(waterfallCb) {
-			cullAndSortResults(results, function(err, results) {
-				waterfallCb(err, results);
-			});
-		},
-		enrich: function(results, waterfallCb) {
-			forEachSeries(results, function(item, function(err, item) {
-				var splitType = item._type.split('/');
-				if (splitType.length > 1) {
-					// query /Me/:collectionId/:id
-					// item = updatedItem
-				} else {
-					// get all syncletIds of the given type
-					// for each syncletId
-						// query /Me/:syncletId/:type/:id
-						// push result onto resultSet;
-					//
-				}
-			}), 
-			function(err) {
-				waterfallCb(err, results);
-			});	
-		}
-	},
-	function(err, results) {		
-		if (err) {	
-			callback('Error when attempting to sort and enrich search results: ' + err, []);
-		}
-		callback(null, results);
-	});
+    // fetch full objects of results
+    async.waterfall([
+        function(waterfallCb) {
+            cullAndSortResults(results, function(err, results) {
+                waterfallCb(err, results);
+            });
+        },
+        function(results, waterfallCb) {
+            async.forEach(results, 
+                function(item, forEachCb) {
+                    var splitType = item._type.split('/');
+                    if (splitType.length === 1) {
+                        var url = lockerInfo.lockerUrl + '/Me/' + splitType[0] + '/' + item._id;
+                        makeEnrichedRequest(url, item, forEachCb);
+                    } else {
+                        locker.providers(item._type, function(err, providers) {
+                            async.forEach(providers,
+                                function(provider, providersForEachCb) {
+                                    console.log('GOOOT HEEERRE');
+                                    var url = lockerInfo.lockerUrl + '/Me/' + provider.id + '/' + splitType[0] + '/' + item._id;
+                                    console.log(url);
+                                    makeEnrichedRequest(url, item, providersForEachCb);
+                                },
+                                function(err) {
+                                    forEachCb(null);
+                                }
+                            );
+                        });
+                       // get all syncletIds of the given type
+                        // for each syncletId
+                            // query /Me/:syncletId/:type/:id
+                            // push result onto resultSet;
+                        //
+                        
+                    }
+                }, 
+                function(err) {
+                    waterfallCb(err, results);
+                }
+            ); 
+        }
+    ],
+    function(err, results) {        
+        if (err) {  
+            callback('Error when attempting to sort and enrich search results: ' + err, []);
+        }
+        callback(null, results);
+    });
 }
 
 // Process the startup JSON object
@@ -190,7 +227,7 @@ process.stdin.on('data', function(data) {
         data = allData.substr(0, allData.indexOf("\n"));
         lockerInfo = JSON.parse(data);
         locker.initClient(lockerInfo);
-        if (!lockerInfo || !lockerInfo['workingDirectory']) {
+        if (!lockerInfo || !lockerInfo.workingDirectory) {
             process.stderr.write('Was not passed valid startup information.'+data+'\n');
             process.exit(1);
         }
