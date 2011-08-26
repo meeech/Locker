@@ -21,7 +21,7 @@ var pinfo = JSON.parse(fs.readFileSync(__dirname + mePath + '/me.json'));
 
 var thecollections = ['link','encounter'];
 var lconfig = require('../Common/node/lconfig');
-lconfig.load("config.json");
+lconfig.load("Config/config.json");
 var locker = {};
 locker.event = function(){};
 util.expandUrl = function(a,b,c){b(a.url);c();} // fakeweb doesn't support HEAD reqs AFAICT :(
