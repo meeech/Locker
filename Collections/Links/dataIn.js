@@ -64,12 +64,11 @@ function getLinks(getter, lurl, callback) {
         }catch(E){
             return callback();
         }
-        for(var i=0; i < arr.length; i++)
-        {
-            var e = getter(arr[i]);
-            if(!e.text) continue;
-            processEncounter(e,function(err){if(err) console.log("getLinks error:"+err)});
-        }
+        async.forEachSeries(arr,function(a,cb){
+            var e = getter(a);
+            if(!e.text) return cb();
+            processEncounter(e,function(err){if(err) console.log("getLinks error:"+err); cb()});
+        },callback);
     });
 }
 
@@ -166,7 +165,7 @@ function getEncounterTwitter(tweet)
 {
     var e = {id:tweet.id
         , network:"twitter"
-        , text: tweet.text
+        , text: tweet.text + " " + tweet.user.screen_name
         , from: (tweet.user)?tweet.user.name:""
         , fromID: (tweet.user)?tweet.user.id:""
         , at: new Date(tweet.created_at).getTime()
