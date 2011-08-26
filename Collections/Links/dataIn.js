@@ -64,12 +64,11 @@ function getLinks(getter, lurl, callback) {
         }catch(E){
             return callback();
         }
-        for(var i=0; i < arr.length; i++)
-        {
-            var e = getter(arr[i]);
+        async.forEachSeries(arr,function(a,cb){
+            var e = getter(a);
             if(!e.text) continue;
-            processEncounter(e,function(err){if(err) console.log("getLinks error:"+err)});
-        }
+            processEncounter(e,function(err){if(err) console.log("getLinks error:"+err); cb()});
+        },callback);
     });
 }
 
